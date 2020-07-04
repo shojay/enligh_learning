@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/newsDetail.css">
+    <style>
+        .downloadNow,.back{
+            border-radius: 10px;
+            transition: all 0.5s;
+        }
+        .downloadNow:hover,.back:hover{
+            background-color: rgb(153, 153, 153);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <% include ./common/nav.html %>
+    <div class="container mt-5 mb-5" id="content">
+        <div class="row">
+            <!-- Latest Posts -->
+            <main class="post blog-post col-lg-8">
+                <div class="container">
+                    <div class="post-single">
+                        <div class="post-details">
+                            <a href="/news/tonews" style="border: 1px solid #333;padding:0 10px;" class="back">
+                                <i class="fa fa-angle-left" aria-hidden="true"></i> 返回
+                            </a>
+                            <h1 class="mt-2">{{ newsDetail.title }}</h1>
+                            <div class="post-footer d-flex align-items-center flex-column flex-sm-row"><a href="#" class="author d-flex align-items-center flex-wrap">
+                                <div class="title"><span>{{ newsDetail.user.name }}</span></div></a>
+                                <div class="d-flex align-items-center flex-wrap">
+                                    <div class="date"><i class="icon-clock"></i>{{ newsDetail.createdAt | formatDate }}</div>
+                                    <div>
+                                        <a href="javascript:;" v-if="isUnCollect"  @click="collect">
+                                            <i class="fa fa-heart-o" aria-hidden="true"></i> 收藏</a>
+                                        <a href="javascript:;" v-else @click="collect"><i
+                                                class="colred fa fa-heart" aria-hidden="true"></i> 已收藏</a>
+                                        <a href="#downloadArea" class="ml-2"><i
+                                                class="fa fa-download mr-1"></i>附件资料下载</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="post-body">
+                                <p class="lead">{{ newsDetail.substract }}</p>
+                                <div v-if="newsDetail.currType === 'img'" class="mb-4 text-center">
+                                    <img :src="newsDetail.imgPath" alt="">
+                                </div>
+                                <div v-else class="mb-2">
+                                    <video :src="newsDetail.imgPath" controls></video>
+                                </div>
+                                <div v-html="newsDetail.content"></div>
+                            </div>
+                            <div class="post-tags mb-2" v-for="(item, i) in tagArr">
+                                <a :href=`/news/tonews?search=${item}` class="tag float-left mb-5">#{{ item }}</a>
+                            </div>
+                            <hr/>
+                            <div id="downloadArea" class="download-area mb-5">
+                                <h3>附件资料下载<i class="fa fa-download ml-3"></i></h3>
+                                <ul>
+                                    <li v-for="(item,i) in newsDetail.filePath" :key="i">
+                                        <a :href="item" :download="newsDetail.fileName[i]"><i :class="newsDetail.fileType[i]"></i>
+                                            {{newsDetail.fileName[i]}}</a>
+                                    </li>
+                                </ul>
+                                <p v-if="newsDetail.filePath != undefined && newsDetail.filePath.length > 0" class="mt-3">
+                                    <a href="javascript:;" @click="downloadPackage"
+                                    style="border: 1px solid #333;padding:0 10px;" class="downloadNow">一键下载</a>
+                                </p>
+                                <h4 v-else class="mt-3" style="color: #aaaaaa;">当前无可下载资源</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <aside class="col-lg-4">
+                <!-- Widget [Search Bar Widget]-->
+                <div class="widget search">
+                    <header>
+                        <h3 class="h6">Search Here</h3>
+                    </header>
+                    <form action="#" class="search-form">
+                        <div class="form-group">
+                            <input type="search" placeholder="搜索" v-model="keywords" @keyup.enter="search($event)">
+                            <button type="submit" class="submit" @click="search"><i class="fa fa-search" aria-hidden="true"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+<script>
+    let newsId = '<%= newsId %>';
+    let app = new Vue({
+        el: '#content',
+        data: {
+            newsDetail: {
+                user: {}
+            },
+            isUnCollect: 1,
+            packageHref: '',
+            keywords: '',
+            imgList: ['jpg', 'jpeg', 'gif', 'png', 'webp'],
+            mediaList: ['mp3', 'mp4', 'f4v', 'flv', 'ogv', 'webm', 'wma', 'rm', 'wav', 'midi', 'ape', 'fla'],
+            officeList: ['pdf', 'doc', 'docx', 'xlsx', 'xlt', 'xlt', 'xlc', 'xls'],
+            archiverList: ['tar.gz', 'tgz', 'zip', 'rar']
+        },
+        computed: {
+            tagArr() {
+                return this.newsDetail.tags !== undefined &&
+                    this.newsDetail.tags.indexOf(',') > -1 ? this.newsDetail.tags.split(',') : [this.newsDetail.tags];
+            }
+        },
+        filters: {
+            formatDate(date) {
+                return new Date(date).toLocaleString();
+            }
+        },
+        created() {
+            this.getTeachDetail(newsId);
+        },
+        methods: {
+            search(e) {
+                e.preventDefault();
+                location.href = `/news/tonews?search=${this.keywords}`;
+            },
+            collect() {
+                $.post('/api/collect', {
+                    newsId: this.newsDetail.id,
+                    status: this.isUnCollect ? 0 : 1
+                }).then(res => {
+                    // 当前未登录，无法收藏，跳转到登录页面
+                    if (res.code !== 0) {
+                        location.href = '/users/login?newsId=' + this.newsDetail.id;
+                        layer.msg(res.msg);
+                        return false;
+                    }
+                    layer.msg(res.msg);
+                    this.getIsCollect();
+                })
+            },
+            getIsCollect() {
+                $.get('/api/isCollect', {
+                    newsId: this.newsDetail.id
+                }).then(res => {
+                    console.log(res);
+                    if (res.code !== 0) {
+                        if (res.msg === '暂时无收藏') return false;
+                        layer.msg(res.msg);
+                        return false;
+                    }
+                    this.isUnCollect = res.data;
+                    console.log('isUnCollect:', this.isUnCollect === 0 ? '收藏' : '取消收藏');
+                })
+            },
+            getTeachDetail(id) {
+                $.get('/api/getNewsDetail', { newsId: id }).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    this.newsDetail = data.newsDetail;
+                    console.log(this.newsDetail);
+                    this.newsDetail.currType = this.imgList.indexOf(this.newsDetail.imgPath.substr(this.newsDetail.imgPath.lastIndexOf('.') + 1)) > -1 ? 'img' : 'video'
+                    // 将fileName和filePath转化为数组
+                    this.newsDetail.fileName = this.newsDetail.fileName ? this.newsDetail.fileName.split(' ') : [];
+                    this.newsDetail.filePath = this.newsDetail.filePath ? this.newsDetail.filePath.split(' ') : [];
+                    this.newsDetail.fileType = [];
+                    this.newsDetail.fileName.map((item, index) => {
+                        this.newsDetail.fileName[index] = item.substr(item.lastIndexOf('-') + 1);
+                        let fileTypeItem = item.substr(item.lastIndexOf('.') + 1);
+                        this.newsDetail.fileType[index] = this.imgList.indexOf(fileTypeItem) > -1 ? 'fa fa-file-image-o' : this.mediaList.indexOf(fileTypeItem) > -1 ? 'fa fa-file-movie-o' : this.officeList.indexOf(fileTypeItem) > -1 ? 'fa fa-file-word-o' : this.archiverList.indexOf(fileTypeItem) > -1 ? 'fa fa-file-zip-o' : "fa fa-file-o"
+                    });
+                    this.getIsCollect()
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            downloadPackage() {
+                $.post('/api/packageZip', {
+                    dirList: this.newsDetail.filePath
+                }).then(res => {
+                    console.log(res);
+                    if (res.code !== 0) {
+                        layer.msg('由于网络原因，打包下载失败');
+                        return false;
+                    }
+                    let id = Date.now() + 'download';
+                    // 点击触发click事件下载打包好的压缩文件
+                    $(`<a id="${id}" href="${res.data.packagePath}" download=""></a>`).appendTo('body');
+                    let e = document.createEvent('MouseEvents');
+                    e.initEvent('click', true, true);
+                    document.getElementById(id).dispatchEvent(e);
+                })
+            }
+        }
+    })
+</script>
+</body>
+</html>

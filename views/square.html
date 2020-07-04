@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/list.css">
+    <link rel="stylesheet" href="/stylesheets/main.css">
+    <link rel="stylesheet" href="/stylesheets/right.css">
+    <link rel="stylesheet" href="/stylesheets/left.css">
+    <script src="/javascripts/my-ajax.js"></script>
+    <style>
+        body{
+            background: linear-gradient(rgba(255, 93, 35, 0.68) 0%, rgba(113, 144, 254, 0.9) 135%) fixed;
+            overflow-y: visible;
+        }
+        .container{
+            min-width: 767px!important;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <% include ./common/nav.html %>
+    <div class="container">
+        <div class="row position-relative">
+            <%- include('./common/nav-list.html')%>
+            <!-- 左侧 -->
+            <div class="col-7 mt-3">
+                <h4 style="color: #fff;font-weight: 700;font-size: 18px" class="mb-2">学习广场</h4>
+
+                <% if (blogData.isEmpty) { %>
+                <div>
+                    <div style="text-align: center;">暂无数据</div>
+                </div>
+                <% } else { %>
+                <!-- 微博列表 -->
+                <div id="container-weibo-list" class="weibo-list">
+                    <%- include('./common/blog-list.html', {
+                    blogList: blogData.blogList
+                    })%>
+                </div> <!-- 微博列表 结束 -->
+                <!-- 加载更多 -->
+                <% if (blogData.count > blogData.blogList.length) { %>
+                <%- include('./common/load-more.html', {
+                pageSize: blogData.pageSize,
+                pageIndex: blogData.pageIndex,
+                count: blogData.count,
+                containerSelector: '#container-weibo-list',
+                api: '/api/square/loadMore',
+                })%>
+                <% } %> <!-- 加载更多 结束 -->
+                <% } %>
+            </div> <!-- 左侧结束 -->
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+    <%- include('./common/nav-trans.js') %>;
+        $('#weibo-square').addClass('active');
+    })
+</script>
+</body>
+</html>

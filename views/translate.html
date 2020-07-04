@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/translate.css">
+</head>
+<body style="background: rgb(249, 249, 249);">
+    <div class="box">
+        <% include ./common/nav.html %>
+        <main class="container-fluid mt-3">
+            <div>
+                <div style="width:100%;" id="content">
+                    <div class="title">
+                        <h2>单词查询</h2>
+                    </div>
+                    <div class="info d-flex align-center" style="width:100%;min-height:100px;">
+                        <section class="" style="width:45%;min-height:100px;">
+                            <p style="height:30px;line-height: 30px;">英语/汉语</p>
+                            <textarea name="" class="form-control" v-model="en" style="min-height:100px; resize:none;"
+                                      id="translate" @blur="setHistory" ref="text">
+                            </textarea>
+                        </section>
+                        <div class="btns">
+                            <div>
+                                <button class="btn-sm btn-primary" @click="translation(-1)"><i
+                                        class="fa fa-angle-right"></i>翻译</button>
+                            </div>
+                            <div>
+                                <button class="btn-sm btn-danger" @click="clear()"><i
+                                        class="fa fa-angle-right"></i>清除</button>
+                            </div>
+                        </div>
+                        <section class="service-info" style="width:45%;min-height:100px;">
+                            <p style="height:30px;line-height: 30px;">汉语/英语</p>
+                            <section class="form-control" style="min-height: 100px;background-color: #f0f0f0">
+                                <ul style="max-height:100px;overflow: auto;">
+<!--                                    <span style="color:#f5862b;">{{ cn }}</span>-->
+                                    <span>{{( cn1 || cn )}}</span>
+                                </ul>
+                            </section>
+                        </section>
+                    </div>
+                    <div class="mt-2">
+                        <h3>相关词：</h3>
+                        <div class="d-flex flex-wrap">
+                            <div v-if='zh.length' v-for="(item,i) in zh" :key="item.word"
+                                 style="line-height: 32px;font-size:18px;width:100%;">
+                                {{i + 1}}、<span class="colfff" @click="moveToInput(item.word)"
+                                                style="font-weight: bold;color:#f5862b;">{{item.word}}:</span>
+                                <span>{{item.translation}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="history-record mt-2">
+                        <div class="history-record-txt">
+                            <a href="javascript:" class="clear-btn" @click="clearHistory">清除记录</a>
+                            <div class="record-txt">历史记录:</div>
+                        </div>
+                        <div class="history-record-wrapper">
+                            <ul v-if="historyList.length">
+                                <li v-for="(item, index) in historyList" @click="moveToInput(item)">{{ item }}</li>
+                            </ul>
+                            <div v-else class="no-record">暂时没有相关历史记录</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        let reg = /[\u4e00-\u9fa5]+/;
+        let sReg = /\s+$/g;
+        let isFlag = false;
+        let app = new Vue({
+            el: '#content',
+            data: {
+                en: '',
+                zh: [],
+                flag: false,
+                historyList: []
+            },
+            mounted() {
+                this.historyList = localStorage.getItem('historyRecord') ? localStorage.getItem('historyRecord').split(',') : [];
+                // $('#translate').on('keyup', _.debounce(this.translation, 500));
+                // debounce为防抖函数，目的是为了减少对服务端的请求数
+                this.$refs.text.addEventListener('keyup', _.debounce(this.translation, 500));
+            },
+            computed: {
+                cn() {
+                    // 是一个完整的可以在数据库查询到的单词
+                    if (this.flag) {
+                        return this.zh[0].word || this.zh.src
+                    } else {
+                        return this.en
+                    }
+                },
+                cn1() {
+                    if (this.flag) {
+                        return this.zh.dst || this.zh[0].translation.match(reg)[0];
+                    } else {
+                        return ''
+                    }
+                }
+            },
+            watch: {
+                // en(newV, oldV) {
+                //     this.translation()
+                // }
+            },
+            methods: {
+                translation() {
+                    console.log(reg.test(this.en))
+                    if (reg.test(this.en)) {
+                        let tempZh = this.en;
+                        let that = this;
+                        $.ajax({
+                            url: 'https://api.fanyi.baidu.com/api/trans/vip/translate',
+                            data: {
+                                q: this.en,
+                                from: 'zh',
+                                to: 'en',
+                                appid: '20200211000382606',
+                                salt: '1435660288',
+                                sign: md5(`20200211000382606${this.en}1435660288pomOSUvEXqBwhFJwcAqc`)
+                            },
+                            success(res) {
+                                console.log(res);
+                                that.zh = res.trans_result[0];
+                                console.log('success', that.zh.src === tempZh);
+                                that.zh.src === tempZh ? that.flag = true : that.flag = false;
+                            },
+                            dataType: 'jsonp'
+                        });
+                    } else {
+                        $.get('/api/translate', {
+                            en: this.en
+                        }).then(res => {
+                            console.log(res);
+                            if (res.code !== 0 || !res.wordList.length) {
+                                this.zh = [];
+                                this.flag = false; // 必须设置为false表示数据库没有该单词，因为返回的wordList中没有word，computed中的方法就会执行else里面的语句，不然会报错
+                                return false;
+                            }
+                            this.zh = res.wordList;
+                            // console.log(this.zh[0].translation);
+                            // 如果输入的单词为完成的能够在数据库查询的单词话，flag=true，否则为false
+                            this.zh[0].word === this.en ? this.flag = true : this.flag = false;
+                            // res.wordList.length > 0 && this.en ? this.zh = res.wordList : ''
+                        })
+                    }
+                },
+                moveToInput(word) {
+                    this.en = word;
+                    this.translation();
+                },
+                clear() {
+                    this.en = '';
+                    this.flag = false;
+                    this.translation();
+                },
+                // 设置历史记录
+                setHistory() {
+                    console.log('setHistory');
+                    let textArea = this.$refs.text;
+                    let val = textArea.value;
+                    console.log(this.historyList, val);
+                    if (val === '' || sReg.test(val)) {
+                        return false;
+                    } else {
+                        let hisIndex = this.historyList.indexOf(val.trim())
+                        console.log('hisIndex', hisIndex)
+                        if (hisIndex > -1) {
+                            this.historyList.splice(hisIndex, 1)
+                            this.historyList.unshift(val);
+                        } else {
+                            this.historyList.push(val);
+                        }
+                        localStorage.setItem('historyRecord', this.historyList)
+                    }
+                },
+                clearHistory() {
+                    this.historyList = [];
+                    localStorage.removeItem('historyRecord');
+                }
+            }
+        })
+    </script>
+</body>
+</html>

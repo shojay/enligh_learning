@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/list.css">
+    <link rel="stylesheet" href="/stylesheets/main.css">
+    <link rel="stylesheet" href="/stylesheets/right.css">
+    <link rel="stylesheet" href="/stylesheets/left.css">
+    <script src="/javascripts/my-ajax.js"></script>
+    <style>
+        body{
+            background: linear-gradient(rgba(255, 93, 35, 0.68) 0%, rgba(113, 144, 254, 0.9) 135%) fixed;
+        }
+        .container{
+            min-width: 767px!important;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <% include ./common/nav.html %>
+    <div class="container">
+        <div class="row position-relative">
+            <%- include('./common/nav-list.html')%>
+            <!-- 左侧 -->
+            <div class="col-7 mt-3">
+                <h4 style="font-size: 18px;color: #fff;font-weight: 700;" class="mb-2">
+                    @ 提到我的 (<%= atCount%> 未读)
+                </h4>
+
+                <!-- 微博输入框 -->
+                <div class="blog-edit-wrapper">
+                    <textarea class="form-control" id="text-content" rows="3" style="resize: none;"></textarea>
+                    <div class="picture-button-wrapper">
+                        <a href="#" id="btn-add-img" class="btn-add-img">
+                            <i class="fa fa-picture-o"></i>
+                            插入一张图片
+                        </a>
+                        <input type="file" accept="image/*" id="file-picture" style="display: none;">
+                        <!--                    <input type="hidden" id="input-img-url" />-->
+                        <!--                    <img src="" style="width: 50px;height: 50px;display: none;" class="ml-2 mb-2" id="img-picture"/>-->
+                        &nbsp;
+                        <span id="span-img-name"></span>
+                        <div class="button">
+                            <button class="btn btn-primary" id="btn-submit">发表</button>
+                        </div>
+                    </div>
+                </div>
+                <% if (blogData.isEmpty) { %>
+                <div>
+                    <div style="text-align: center;font-weight: bold;font-size: 16px;color: #fff;">暂无数据</div>
+                </div>
+                <% } else { %>
+                <!-- 微博列表 -->
+                <div id="container-weibo-list" class="weibo-list">
+                    <%- include('./common/blog-list.html', {
+                    blogList: blogData.blogList,
+                    canReply: true
+                    })%>
+                </div> <!-- 微博列表 结束 -->
+                <% } %>
+            </div> <!-- 左侧结束 -->
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+         <%- include('./common/nav-trans.js') %>;
+        let $spanImgName = $('#span-img-name');
+        let $inputImgUrl = $('#input-img-url');
+        let $textContent = $('#text-content');
+        let $filePicture = $('#file-picture');
+        let $imgPicture = $('#img-picture');
+        let imgStr = '';
+
+        $('#atMe').addClass('active');
+
+        // 上传图片
+        $filePicture.change(function (e) {
+            let file = $filePicture[0].files[0];
+            $spanImgName.text(file.name);
+            ajax.upload('/api/utils/upload', file, function(err, data) {
+                if (err) {
+                    layer.msg(err);
+                    return false;
+                }
+                console.log(data);
+                // 成功
+                $imgPicture.attr('src', data.url);
+                imgStr = data.url;
+                console.log(imgStr);
+                $imgPicture.css({
+                    'display': 'inline'
+                })
+            })
+        });
+
+        // 插入图片
+        $('#btn-add-img').click(function (e) {
+            e.preventDefault();
+            //  开始选择图片
+            $filePicture.click()
+        });
+
+        // 发布微博
+        $('#btn-submit').click(function () {
+            let content = $textContent.val().trim();
+
+            // 验证
+            if (content.length === 0) {
+                alert('请输入微博内容');
+                return
+            }
+
+            // 发布
+            ajax.post('/api/blog/create', {
+                content: content,
+                image: imgStr
+            }, function (err) {
+                if (err) {
+                    // 失败
+                    alert(err);
+                    return
+                }
+                // 成功
+                $filePicture.val('');
+                $spanImgName.text('');
+                $textContent.val('');
+                $inputImgUrl.val('');
+
+                // 刷新页面
+                location.href = location.pathname
+            })
+        });
+
+
+        // @ 功能
+        $textContent.atwho({
+            at: '@',
+            data: '/api/user/getAtList'
+            // data: ['Peter', 'Tom', 'Anne']
+        })
+    })
+</script>
+</body>
+</html>

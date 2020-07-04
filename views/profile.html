@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/list.css">
+    <link rel="stylesheet" href="/stylesheets/main.css">
+    <link rel="stylesheet" href="/stylesheets/right.css">
+    <link rel="stylesheet" href="/stylesheets/left.css">
+    <link rel="stylesheet" href="/stylesheets/fans_followers.css">
+    <style>
+        body{
+            background: linear-gradient(rgba(255, 93, 35, 0.68) 0%, rgba(113, 144, 254, 0.9) 135%) fixed;
+        }
+        .container{
+            min-width: 992px!important;
+        }
+    </style>
+    <script src="/javascripts/my-ajax.js"></script>
+</head>
+<body>
+<div class="box">
+    <% include ./common/nav.html %>
+    <div class="container">
+        <div class="row position-relative">
+            <%- include('./common/h-nav-list.html')%>
+            <!-- 左侧 -->
+            <% if (flag === 0) { %>
+            <div class="col-7 mt-3 toggle-wrapper">
+                <h4 class="mb-2" style="color: #Fff;font-weight: 700;font-size: 18px;">个人空间</h4>
+
+                <% if (blogData.isEmpty) { %>
+                <div>
+                    <div style="text-align: center;">暂无数据</div>
+                </div>
+                <% } else { %>
+                <!-- 微博列表 第一页 -->
+                <div id="container-weibo-list" class="weibo-list">
+                    <%- include('./common/blog-list.html', {
+                    blogList: blogData.blogList
+                    })%>
+                </div>
+                <!-- 微博列表 结束 -->
+                <!-- 加载更多 -->
+                <% if (blogData.count > blogData.blogList.length) { %>
+                <%- include('./common/load-more.html', {
+                pageSize: blogData.pageSize,
+                pageIndex: blogData.pageIndex,
+                count: blogData.count,
+                containerSelector: '#container-weibo-list',
+                api: '/api/profile/loadMore/' + userData.userInfo.name,
+                })%>
+                <% } %> <!-- 加载更多 结束 -->
+                <% } %>
+            </div>
+            <% } else if (flag === 1) { %>
+            <div class="col-10 mt-3 followers-wrapper">
+                <div class="followers-count mb-2 ml-2">
+                    关注（<%= userData.followersData.count%>）
+                </div>
+                <div class="followers-list">
+                    <% userData.followersData.list.forEach(follower => { %>
+                    <div class="followers-info">
+                        <a href="/blog/profile/<%= follower.name%>">
+                            <img src="<%= follower.picture%>"/>
+                            <span><%= follower.name%></span>
+                        </a>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <% } else if (flag === 2) { %>
+            <div class="col-10 mt-3 fans-wrapper">
+                <div class="fans-count mb-2 ml-2">
+                    粉丝（<%= userData.fansData.count%>）
+                </div>
+                <div class="fans-list">
+                    <% userData.fansData.list.forEach(fan => { %>
+                    <div class="fans-info">
+                        <a href="/blog/profile/<%= fan.name%>">
+                            <img src="<%= fan.picture%>"/>
+                            <span><%= fan.name%></span>
+                        </a>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <% } %>
+            <!--         右侧-->
+            <% if (flag === 0) { %>
+            <div class="col-3" style="margin-top: 45px;">
+                <!-- 个人信息 -->
+                <div class="right-item">
+                    <%- include('./common/user-info.html', {
+                    userInfo: userData.userInfo,
+                    isMe: userData.isMe,
+                    amIFollowed: userData.amIFollowed,
+                    fansCount: userData.fansData.count,
+                    followersCount: userData.followersData.count
+                    });%>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+<script>
+    <%- include('./common/nav-trans.js') %>;
+    let flag = '<%= flag%>';
+    flag = parseInt(flag);
+    if (flag === 0) {
+        $('#his-home').addClass('active');
+    } else if (flag === 1) {
+        $('#his-followers').addClass('active');
+    } else {
+        $('#his-fans').addClass('active');
+    }
+</script>
+</body>
+</html>

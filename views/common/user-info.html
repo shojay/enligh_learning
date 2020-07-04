@@ -1,0 +1,100 @@
+<div class="user-wrapper">
+    <div class="user-card-top">
+        <div class="bg-mask"></div>
+        <div class="user-avatar">
+            <a href="javascript:">
+                <img src="<%= userInfo.picture%>" class=""/>
+            </a>
+        </div>
+        <div class="user-name">
+            <%= userInfo.name%>
+        </div>
+        <% if (isMe) { %>
+        <%# 是当前登录用户%>
+        <div class="at-me">
+            <a href="/blog/at-me">
+                @提到我的 (<%= locals.atCount%>)
+            </a>
+        </div>
+        <% } else { %>
+        <%# 不是当前登录用户%>
+        <div class="follow-btn">
+            <button id="btn-un-follow" class="btn btn-sm btn-light" style="display: none;">取消关注</button>
+            <button id="btn-follow" class="btn btn-sm btn-primary" style="display: none;">关注</button>
+        </div>
+        <% } %>
+
+    </div>
+    <div class="user-card-bot">
+        <ul class="user-card-list">
+            <li>
+                <a href="javascript:">
+                    <strong><%= followersCount%></strong>
+                    <span>关注</span>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:">
+                    <strong><%= fansCount%></strong>
+                    <span>粉丝</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+<script>
+    $(function () {
+        // 当前用户 id
+        let curUserId = '<%= userInfo.id%>';
+
+        console.log('isNotMe', !('<%= isMe%>' === 'true'));
+        console.log('amIFollowed', '<%= amIFollowed%>' === 'true');
+
+        // 按钮，显示和隐藏
+        let $btnFollow = $('#btn-follow')
+        let $btnUnFollow = $('#btn-un-follow')
+        if (<%= !isMe%>) {
+            // 不是当前用户，则显示“关注”或者“取消关注”
+            if (<%= amIFollowed%>) {
+                $btnUnFollow.show()
+            } else {
+                $btnFollow.show()
+            }
+        }
+
+        // 关注此人
+        $btnFollow.click(function () {
+            $.post('/api/profile/follow', {
+                userId: curUserId
+            }).done(data => {
+                if (data.code !== 0) {
+                    layer.msg(data.msg);
+                    return false;
+                }
+                layer.msg(data.msg);
+                $btnUnFollow.show();
+                $btnFollow.hide();
+            })
+        });
+
+        // 取消关注
+        $btnUnFollow.click(function () {
+            if (confirm('确定取消关注？') === false) {
+                return
+            }
+            $.post('/api/profile/unFollow', {
+                userId: curUserId
+            }).done(data => {
+                if (data.code !== 0) {
+                    layer.msg(data.msg);
+                    return false;
+                }
+                layer.msg(data.msg);
+                $btnUnFollow.hide();
+                $btnFollow.show();
+            })
+        })
+    })
+</script>

@@ -1,0 +1,20 @@
+<div class="offset-2"></div>
+<div class="list-wrapper position-fixed">
+    <div class="blog-list-group mt-3">
+        <div class="my-home list-item">
+            <a href="/blog" id="my-home"><i class="fa fa-home mr-1"></i>我的首页</a>
+        </div>
+        <div class="my-follow list-item">
+            <a href="/blog/followers/<%= userData.userInfo.name%>" id="my-followers"><i class="fa fa-user-circle-o mr-1"></i>我的关注</a>
+        </div>
+        <div class="my-fans list-item">
+            <a href="/blog/fans/<%= userData.userInfo.name%>" id="my-fans"><i class="fa fa-user mr-1"></i>我的粉丝</a>
+        </div>
+        <div class="square list-item">
+            <a href="/blog/square" id="weibo-square"><i class="fa fa-h-square mr-1"></i>学习广场</a>
+        </div>
+        <div class="atMe list-item">
+            <a href="/blog/at-me" id="atMe"><i class="fa fa-at mr-1"></i>提到我的</a>
+        </div>
+    </div>
+</div>

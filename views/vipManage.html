@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <style>
+        .selected{
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+<div class="box vip">
+    <% include ./common/nav.html %>
+    <div id="content" class="container mt-3">
+        <div class="search">
+            <button class="btn btn-warning operateBtn" type="button" id="showSearchBtn" data-toggle="collapse"
+                    data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">查询用户</button>
+            <button class="btn btn-info operateBtn" type="button" id="addVip" data-toggle="modal" data-target="#add"
+                    aria-expanded="false" aria-controls="collapseExample">添加用户</button>
+            <div class="collapse mt-2" id="collapseExample">
+                <label for="keywordsName">
+                    <span>按姓名:</span>
+                    <input type="text" class="search-text form-control form-control-md" name="" id="keywordsName"
+                           v-model="keywordsName" aria-describedby="helpId" placeholder="按名字查询">
+                </label>
+                <label for="keywordsAccount">
+                    <span>按账号：</span>
+                    <input type="text" class="search-text form-control form-control-md" name="" id="keywordsAccount"
+                           v-model="keywordsAccount" aria-describedby="helpId" placeholder="按账号查询">
+                </label>
+                <button class="btn btn-dark" id="btnSearch" @click="search">搜索</button>
+            </div>
+        </div>
+
+        <table class="table mt-2">
+            <thead class="text-black">
+            <tr>
+                <th scope="col"><i class="fa fa-list-ul"></i></th>
+                <th scope="col">用户名称</th>
+                <th scope="col">用户账号</th>
+                <th scope="col">联系电话</th>
+                <th scope="col">用户类型</th>
+                <th scope="col">注册时间</th>
+                <th scope="col">操作</th>
+            </tr>
+            </thead>
+            <tbody id="userList">
+            <tr v-for="(item,i) in tableData" :key="item.id">
+                <td>
+                    <label class="btn">
+                        <input class="selectSingle" @click="selectSingle($event,item.id)" type="checkbox"
+                               :data-id="item.id" autocomplete="off">
+                    </label>
+                </td>
+                <td>
+                    {{ item.name || "无" }}
+                </td>
+                <td>
+                    {{ item.account }}
+                </td>
+                <td>
+                    {{ item.phone || "无" }}
+                </td>
+                <td>
+                    {{ item.type == 1 ? "普通用户 " : "管理员" }}
+                </td>
+                <td>
+                    {{ item.createdAt | formatDate}}
+                </td>
+                <td>
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                            data-target="#detail" @click="getUserOne(item.id)">详情</button>
+                    <button type="button" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#edit"
+                            @click="getUserOne(item.id)">编辑</button>
+                    <button type="button" class="btn btn-sm btn-danger" data-toggle="modal"
+                            data-target="#delete" @click="currentId = item.id">删除</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 添加 -->
+        <div class="modal fade" id="add" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form id="addForm">
+                        <div class="modal-header">
+                            <h5 class="modal-title">添加用户</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="name">用户名称：</label>
+                                <input type="text" class="form-control" name="name" id="name"
+                                       v-model="userAddInfo.name" aria-describedby="helpId" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label for="account">用户账号：</label>
+                                <input type="text" class="form-control" name="account" id="account"
+                                       v-model="userAddInfo.account" aria-describedby="helpId" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">用户密码：</label>
+                                <input type="password" class="form-control" name="password" id="password"
+                                       v-model="userAddInfo.password" aria-describedby="helpId" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">用户电话：</label>
+                                <input type="text" class="form-control" name="phone" id="phone"
+                                       v-model="userAddInfo.phone" aria-describedby="helpId" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">用户邮箱：</label>
+                                <input type="email" class="form-control" name="email" id="email"
+                                       v-model="userAddInfo.email" aria-describedby="helpId" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label for="type">用户类型：</label>
+                                <div class="form-group">
+                                    <select class="form-control" v-model="userAddInfo.type" name="type"
+                                            id="type">
+                                        <option value="1">普通用户</option>
+                                        <option value="2">管理员</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" @click="addUser" id="btnAdd">添加</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- 编辑 -->
+        <div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form id="editForm">
+                        <div class="modal-header">
+                            <h5 class="modal-title">编辑信息</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" id="editBody">
+                            <div class="form-group">
+                                <label for="accountEdit">用户账号：</label>
+                                <input type="text" class="form-control" disabled name="account"
+                                       v-model="userInfo.account" aria-describedby="helpId" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">用户密码：</label>
+                                <input type="password" class="form-control" name="password"
+                                       v-model="userInfo.password" aria-describedby="helpId" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label for="name">用户名称：</label>
+                                <input type="text" class="form-control" name="name" v-model="userInfo.name"
+                                       aria-describedby="helpId" placeholder="">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">用户电话：</label>
+                                <input type="text" class="form-control" name="phone" v-model="userInfo.phone"
+                                       aria-describedby="helpId" placeholder="">
+                            </div>
+                            <label for="type">用户类型：</label>
+                            <!-- <input type="text" class="form-control" name="status" id="status" aria-describedby="helpId" placeholder=""> -->
+
+                            <div class="form-group">
+                                <select class="form-control" v-model="userInfo.type" name="type">
+                                    <option value="1">普通用户</option>
+                                    <option value="2">管理员</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" @click="editUser">保存</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+        <!-- 详情 -->
+        <div class="modal fade mg50" id="detail" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">用户信息</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="detailBody">
+                        <div class="form-group clearfix">
+                            <label for="name" class="col-md-4 text-right">用户名称：</label>
+                            <span class="col-md-8 text-left">{{userInfo.name || "无"}}</span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label for="account" class="col-md-4 text-right">用户账号：</label>
+                            <span class="col-md-8 text-left">{{userInfo.account}}</span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label for="phone" class="col-md-4 text-right">用户电话：</label>
+                            <span class="col-md-8 text-left">{{userInfo.phone || "无"}}</span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label for="type" class="col-md-4 text-right">用户类型：</label>
+                            <span class="col-md-8 text-left">{{userInfo.type == 1 ? "普通用户" : "管理员"}}</span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label for="createTime" class="col-md-4 text-right">注册时间：</label>
+                            <span class="col-md-8 text-left">{{userInfo.createdAt | formatDate}}</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 删除 -->
+        <div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">删除警告</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        您确定要删除选中记录么？
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-danger" @click="deleteUser(currentId)">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="deleteGroup text-left ml20">
+            <button type="button" class="btn btn-primary" @click="btnSelectAll" id="btnSelectAll">全选/全不选</button>
+            <button type="button" class="btn btn-danger ml20" data-toggle="modal" data-target="#delete"
+                    id="btnDelAll">批量删除</button>
+        </div>
+        <nav aria-label="Page navigation" class="pager flex-row" id="pager">
+            <ul class="pagination justify-content-center">
+                <li>
+                    <a href="javascript:;" id="prev" aria-label="Previous" @click="goPage(-1)">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li v-for="(item, i) in pages" :key="i" style="padding: 0 5px 0 5px">
+                    <a href="javascript:;" :class="item == pageNow ? 'selected' : ''" :data-page="item" @click="goPage(item)">{{ item }}</a>
+                </li>
+                <li>
+                    <a href="javascript:;" id="next" aria-label="Next" @click="goPage(-2)">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+<script>
+    let app = new Vue({
+        el: '#content',
+        data: {
+            pageNow: 1,
+            pageSize: 5,
+            pages: [],
+            tableData: [],
+            idGroup: [],
+            isSelectAll: false,
+            keywordsName: '',
+            keywordsAccount: '',
+            userInfo: {},
+            userAddInfo: {},
+            currentId: '', // 当前用户id
+        },
+        filters: {
+            formatDate(date) {
+                return new Date(date).toLocaleString();
+            }
+        },
+        created() {
+            this.getTableData()
+        },
+        methods: {
+            search() {
+                $.post('/api/users/search', {
+                    keywordsName: this.keywordsName,
+                    keywordsAccount: this.keywordsAccount,
+                    pageSize: this.pageSize,
+                    pageNow: this.pageNow
+                }).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    this.tableData = data.users;
+                    this.pages = data.pages;
+                    this.pageNow = this.pages.length;
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            getTableData() {
+                $.get(`/api/users/getUsers/${this.pageSize}/${this.pageNow}`).then(res => {
+                    console.log(res);
+                    if (res.code !== 0) {
+                        layer.msg(res.msg);
+                        return false;
+                    }
+                    this.tableData = res.users;
+                    this.pages = res.pages;
+                })
+            },
+            goPage(i) {
+                if (i === this.pageNow) return;
+                if (this.pageNow === 1 && i === -1) return;
+                if (this.pageNow === this.pages[this.pages.length - 1] && i === -2) return;
+                this.pageNow = i === - 1 ? this.pageNow - 1 : i === -2 ? this.pageNow + 1 : i;
+                this.getTableData()
+            },
+            deleteById(id) {
+                $.post('/api/users/deleteUser', { id }).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    layer.msg('删除成功');
+                    this.getTableData();
+                }).fail(err => {
+                    throw err;
+                });
+            },
+            deleteByIdGroup(arr) {
+                location.reload();
+                $.post('/api/users/deleteUser', { idGroup: arr.join(',') }).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    layer.msg('批量删除成功');
+                    this.idGroup = [];
+                    this.getTableData();
+                }).fail(err => {
+                    this.getTableData();
+                    throw err;
+                })
+            },
+            btnSelectAll() {
+                if (!this.isSelectAll) {
+                    this.idGroup = [];
+                    $('.selectSingle').each((index, item) => {
+                        $(item).prop('checked', true);
+                        this.idGroup.push($(item).data('id'));
+                    });
+                    this.isSelectAll = true;
+                } else {
+                    $('.selectSingle').each((index, item) => {
+                        $(item).prop('checked', false);
+                    });
+                    this.idGroup = [];
+                    this.isSelectAll = false;
+                }
+                console.log('idGroup:', this.idGroup);
+            },
+            selectSingle(e, id) {
+                if ($(e.target).prop('checked')) {
+                    this.idGroup.push(id);
+                } else {
+                    let index = this.idGroup.indexOf(id);
+                    this.idGroup.splice(index, 1);
+                }
+                console.log('idGroup:', this.idGroup);
+            },
+            getUserOne(id) {
+                $.get(`/api/getUser/${id}`).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    this.userInfo = data.userData;
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            editUser() {
+                $.post('/api/users/editUser', this.userInfo).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    layer.msg('编辑成功');
+                    this.getTableData();
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            deleteUser(id) {
+                id ? this.deleteById(id) : this.deleteByIdGroup(this.idGroup);
+                $('#delete').modal('hide')
+            },
+            addUser() {
+                $.post('/api/users/addUser', this.userAddInfo).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    $('#add').modal('hide');
+                    layer.msg('添加用户成功');
+                    this.getTableData();
+                }).fail(err => {
+                    throw err;
+                })
+            }
+        },
+        mounted() {
+            $('#delete').on('hide.bs.modal', () => {
+                this.currentId = ''
+            })
+        }
+    })
+</script>
+</body>
+</html>

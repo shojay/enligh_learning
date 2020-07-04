@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/left.css">
+    <link rel="stylesheet" href="/stylesheets/fans_followers.css">
+    <style>
+        body{
+            background: linear-gradient(rgba(255, 93, 35, 0.68) 0%, rgba(113, 144, 254, 0.9) 135%) fixed;
+        }
+        .container{
+            min-width: 767px!important;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <% include ./common/nav.html %>
+    <div class="container">
+        <div class="row position-relative">
+            <%- include('./common/nav-list.html')%>
+            <div class="col-10 followers-wrapper mt-3">
+                <div class="followers-count mb-2 ml-2">
+                    关注（<%= userData.followersData.count%>）
+                </div>
+                <div class="followers-list">
+                    <% userData.followersData.list.forEach(follower => { %>
+                    <div class="followers-info">
+                        <a href="/blog/profile/<%= follower.name%>">
+                            <img src="<%= follower.picture%>"/>
+                            <span><%= follower.name%></span>
+                        </a>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+    <%- include('./common/nav-trans.js') %>;
+        $('#my-followers').addClass('active');
+    })
+</script>
+</body>
+</html>

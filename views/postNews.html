@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/newsDetail.css">
+</head>
+<body style="overflow-x: hidden;">
+    <% include ./common/nav.html %>
+    <div class="col3 text-white" style="background:rgba(244,244,244,0.5)">
+        <div class="row mb-2">
+            <div class="col-md-8" style="margin:0 auto;">
+                <h2 class="mt-3 text-center mt20 mb20">发布学习资料</h2>
+                <form id="content" class="mt-2">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="title" style="color: #000;">资料标题</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder=""
+                                   v-model="formData.title" required>
+                            <div class="invalid-feedback">
+                                标题为字母、数字、下划线组成的最多30个字的字符串
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="tags" style="color: #000;">资料标签</label>
+                            <input type="text" class="form-control" id="tags" name="tags"
+                                   placeholder="标签请用“,”分隔" v-model="formData.tags" required>
+                            <div class="invalid-feedback">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label style="color: #000;">图片或视频</label>
+                            <div id="uploader-demo" class="d-flex">
+                                <!--用来存放item-->
+                                <div id="filePicker" style="border:none;">
+                                    <img id="uploadImg" src="/images/upload.jpg" alt="" width="100px" height="100px">
+                                </div>
+                                <div id="fileList" class="uploader-list">
+
+                                </div>
+                                <img v-if="formData.imgPath" style="max-height:100px;" :src="formData.imgPath" alt="">
+                                <!-- 此处用来存放formData的图片路径 -->
+                                <input class="d-none" type="text" v-model="formData.imgPath">
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label style="color: #000;">附件资料(仅支持pdf,word,excel)</label>
+                            <div id="uploader-demo-1" class="d-flex">
+                                <!--用来存放item-->
+                                <div id="filePicker2" style="border:none;">
+                                    <img id="uploadImg-1" src="/images/upload.jpg" alt="" width="100px" height="100px">
+                                </div>
+                                <div id="fileList-1" class="uploader-list">
+                                </div>
+                                <div class="filename-list">
+                                    <p v-for="item in formData.fileName" class="list-item" :key="item" style="color: #000;">{{item}}</p>
+                                </div>
+                                <!-- 此处用来存放formData的图片路径 -->
+                                <input class="d-none" type="text" v-model="formData.imgPath">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="form-group">
+                                <label for="substract" style="color:#000">摘要</label>
+                                <textarea class="form-control" name="substract" id="substract" rows="3" maxlength="200"
+                                          v-model="formData.substract" style="resize: none;"></textarea>
+                            </div>
+                            <div class="invalid-feedback" style="color: #000;">
+                                请输入最多200字的摘要信息
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3 mycontent">
+                            <label for="content" style="color: #000;">正文</label>
+                            <div id="editor"></div>
+                        </div>
+                    </div>
+                    <hr class="mb-4">
+                    <button class="btn btn-secondary btn-lg btn-block" type="submit"
+                            @click="btnSubmit($event)">提交-学习资料</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        let uploader = undefined;
+        let editor = undefined;
+        let uploaderFile = undefined;
+        let app = new Vue({
+            el: '#content',
+            data: {
+                formData: {
+                    title: '',
+                    tags: '',
+                    substract: '',
+                    imgPath: '',
+                    content: '',
+                    filePath: [],
+                    fileName: []
+                }
+            },
+            created() {},
+            mounted() {
+                let E = window.wangEditor;
+                // new 编辑器对象
+                editor = new E('#editor');
+                editor.customConfig.uploadImgShowBase64 = true; // 使用base64保存图片
+                editor.create();
+                editor.customConfig.uploadImgShowBase64 = true;
+                editor.customConfig.uploadImgServer = '/api/uploadImg'; // 配置上传图片服务端地址
+                editor.customConfig.uploadVideoServer = '/uploadFile'; // 配置上传视频服务端地址
+                editor.customConfig.uploadVideoHooks = {
+                    customInsert: function (insertImg, result, editor) {
+                        let url = result.data; // 获取后台返回的url
+                        console.log('video url = ' + url);
+                        insertImg(url);
+                    }
+                };
+
+                uploader = WebUploader.create({
+                    // 选完文件后，是否自动上传
+                    auto: true,
+                    // swf文件路径
+                    swf: '/libs/webuploader/Uploader.swf',
+                    // 文件接收服务端
+                    server: '/api/uploadImg',
+                    // 选择文件的按钮，可选
+                    // 内部根据当前运行时创建，可能是input元素，也可能是flash
+                    pick: '#filePicker',
+                    // 只允许选择图片文件
+                    accept: {
+                        title: 'Images',
+                        extensions: 'jpg,jpeg,gif,png,webp,mp3,mp4,f4v,flv,ogv,webm,wma,rm,wav,midi,ape,fla',
+                        mimeTypes: 'image/*,audio/*,video/*'
+                    }
+                });
+                uploaderFile = WebUploader.create({
+                    // 选完文件后，是否自动上传。
+                    auto: true,
+                    // swf文件路径
+                    swf: '/libs/webuploader/Uploader.swf',
+                    // 文件接收服务端。
+                    server: '/uploadFile',
+                    // 选择文件的按钮。可选。
+                    // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+                    pick: '#filePicker2',
+                    // 只允许选择图片文件。
+                    accept: {
+                        title: 'Files',
+                        extensions: 'pdf,doc,docx,tar.gz,tgz,zip,xlsx,xlt,xlt,xlc,xls',
+                        mimeTypes: 'application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                            + ',application/pdf' + ",application/x-gzip,application/x-gtar,application/zip" + ",application/vnd.ms-excel"
+                    },
+                    fileNumLimit: 5,                              //最大上传数量为5
+                    fileSingleSizeLimit: 60 * 1024 * 1024,         //限制上传单个文件大小60M
+                    fileSizeLimit: 300 * 1024 * 1024,              //限制上传所有文件大小300M
+                    resize: false                                  // 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传
+                })
+            },
+            methods: {
+                btnSubmit(e) {
+                    e.preventDefault();
+                    let title = $('#title').val();
+                    let substract = $('#substract').val();
+                    let content = editor.txt.html();
+                    if (!title || !substract || !content) {
+                        layer.msg('请将内容填写完整后在提交');
+                        return false;
+                    }
+                    this.formData.content = content;
+                    $.post('/api/postNews', {
+                        userId: JSON.parse($.cookie('userInfo')).id,
+                        title: this.formData.title,
+                        tags: this.formData.tags,
+                        substract: this.formData.substract,
+                        content: this.formData.content,
+                        imgPath: this.formData.imgPath,
+                        filePath: this.formData.filePath,
+                        fileName: this.formData.fileName
+                    }).done(data => {
+                        console.log(data);
+                        if (data.code !== 0) {
+                            layer.msg(data.msg);
+                            return;
+                        }
+                        layer.msg(data.msg);
+                        this.formData.title = "";
+                        this.formData.tags = "";
+                        this.formData.substract = "";
+                        this.formData.imgPath = "";
+                        this.formData.content = "";
+                        this.formData.filePath = [];
+                        this.formData.fileName = [];
+                        editor.txt.clear();
+                    }).fail(err => {
+                        throw err;
+                    })
+                }
+            }
+        });
+        uploader.on('uploadSuccess', (file, response) => {
+            console.log('file: ', file, 'res: ', response);
+            layer.msg('上传成功！');
+            app.formData.imgPath = response.imgPath;
+        });
+        uploaderFile.on('uploadSuccess', (file, response) => {
+            console.log('file: ', file, 'res: ', response);
+            layer.msg('上传成功！');
+            app.formData.filePath.push(response.filePath);
+            app.formData.fileName.push(file.name);
+        });
+    </script>
+</body>
+</html>

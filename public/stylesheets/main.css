@@ -1,0 +1,22 @@
+.blog-edit-wrapper{
+    border-radius: 12px;
+    background-color: #fff;
+    margin-bottom: 10px;
+    padding: 20px 20px 0;
+    box-shadow: 0 1px 6px hsla(0,0%,60%,.12);
+}
+.picture-button-wrapper{
+    height: 40px;
+    position: relative;
+    margin-top: 10px;
+}
+.btn-add-img{
+    height: 40px;
+    line-height: 30px;
+}
+.button{
+    display: inline-block;
+    position: absolute;
+    right: 0;
+    bottom: 5px;
+}
