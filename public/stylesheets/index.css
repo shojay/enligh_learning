@@ -1,0 +1,88 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+.home {
+    height: 100%;
+}
+.content-item {
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.8);
+    width: 100%;
+    height: 400px;
+    text-align: center;
+    color: #333;
+}
+
+.content-item .content{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.content-item .content .icon{
+    height: 100%;
+    width: 50%;
+    font-size: 40px;
+    line-height: 500px;
+}
+
+.content-item .content .txt-wrap{
+    height: 100%;
+    width: 50%;
+    text-align: left;
+    padding-top: 50px;
+}
+
+.content-item .content .txt-wrap h2{
+    font-size: 50px;
+    padding-bottom: 20px;
+}
+
+.content-item .content .txt-wrap p{
+    width: 100%;
+    line-height: 25px;
+    opacity: 0.6;
+    font-size: 18px;
+    letter-spacing: 0.12em;
+}
+
+.content-item .content .txt-wrap a{
+    display: block;
+    color:  #12b7f5;
+    text-decoration: none;
+    font-size: 30px;
+    opacity: 0.8;
+    padding-top: 20px;
+}
+
+.activebg {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background: #fff no-repeat fixed center 0;
+    background-size: cover;
+}
+.fisrtbg {
+    background-image: url('../images/banners/index1.jpg');
+}
+.secondbg {
+    background-image: url(https://sqimg.qq.com/qq_product_operations/im/2015/update/avd.jpg);
+}
+.thirdbg {
+    background-image: url(https://sqimg.qq.com/qq_product_operations/im/2015/blog.jpg);
+}
+.fourthbg {
+    background-image: url('../images/banners/indexBanner1.jpg');
+}
+.foot {
+    background-color: black;
+    line-height: 500px;
+    color: #fff;
+    text-align: center;
+    width: 100%;
+    font-size: 30px;
+    font-weight: bold;
+}

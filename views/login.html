@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+</head>
+<body style="overflow-y: hidden;">
+    <% if (locals.isLogin) { %>
+    <div class="logined">
+        <p><%= locals.name%>，您已经登录，请直接访问<a href="/">首页</a></p>
+    </div>
+    <% } else { %>
+    <!--[if lte IE 9]>
+    <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+    <![endif]-->
+
+    <!-- signin end -->
+    <section class="signin" style="padding: 145px 0;">
+        <div class="container">
+            <div class="sign-content">
+                <h2>登录</h2>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="signin-form">
+                            <form>
+                                <div class="form-group">
+                                    <label for="account">phone</label>
+                                    <input type="text" class="form-control" id="account" placeholder="Enter your phone">
+                                </div><!--/.form-group -->
+                                <div class="form-group">
+                                    <label for="password">password</label>
+                                    <input type="password" class="form-control" id="password" placeholder="Enter your password">
+                                </div><!--/.form-group -->
+                            </form><!--/form -->
+                        </div><!--/.signin-form -->
+                    </div><!--/.col -->
+                </div><!--/.row -->
+
+
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="signin-footer">
+                            <button type="button" class="btn signin_btn signin_btn_two" id="btnSubmit">
+                                sign in
+                            </button>
+                            <p>
+                                Don’t have an Account ?
+                                <a href="/users/register" style="font-size: 14px;color: #333;">register</a>
+                            </p>
+                        </div><!--/.signin-footer -->
+                    </div><!--/.col -->
+                </div><!--/.row -->
+
+            </div><!--/.sign-content -->
+        </div><!--/.container -->
+    </section><!--/.signin -->
+    <% } %>
+</body>
+<script>
+    let accountPattern = /^1[34578]\d{9}$/;
+    let passwordPattern = /^(\w){6,18}$/
+
+    $('#btnSubmit').click(function (e) {
+        e.preventDefault();
+        let account = $('#account').val();
+        let password = $('#password').val();
+        if (!account || !password) {
+            layer.msg('请填写完整再提交');
+            return false;
+        }
+        if (account.indexOf("administrator") === -1 && !accountPattern.test(account)) {
+            layer.msg("您输入的手机号有误，请重新输入");
+            return false;
+        }
+        if (!passwordPattern.test(password)) {
+            layer.msg("密码格式错误！（请输入6-18位字母、数字、下划线组成的字符串）");
+            return false;
+        }
+        $.post('/api/login', {
+            account,
+            password
+        }).done(function (data) {
+            console.log(data);
+            if (data.code !== 0) {
+                layer.msg(data.msg);
+                return false;
+            }
+            layer.msg('登录成功');
+            location.href = '/' + location.search;
+        }).fail(function (e) {
+            console.log(e);
+        })
+    })
+</script>
+</html>

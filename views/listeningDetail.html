@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/newsDetail.css">
+    <style>
+        .border-click, .back{
+            border: 1px solid #333;
+            border-radius: 10px;
+            transition: all 0.5s;
+        }
+        .border-click{
+            padding: 10px 0;
+        }
+        .border-click:hover, .back:hover{
+            border: 1px solid #fff;
+            background-color: rgb(153, 153, 153);
+            padding: 10px 0;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <% include ./common/nav.html %>
+    <div class="container mt-5 mb-5" id="content">
+        <div class="row">
+            <!-- Latest Posts -->
+            <main class="post blog-post col-12">
+                <div class="container">
+                    <div class="post-single">
+                        <div class="post-details">
+                            <a href="/listening" style="padding:0 10px;" class="back">
+                                <i class="fa fa-angle-left" aria-hidden="true"></i> 返回
+                            </a>
+                            <h1 class="mt-2">{{ listeningDetail.name }}</h1>
+                            <div class="post-footer d-flex align-items-center flex-column flex-sm-row"><a href="#" class="author d-flex align-items-center flex-wrap">
+                                <div class="title"><span>{{ listeningDetail.user.name }}</span></div></a>
+                                <div class="d-flex align-items-center flex-wrap">
+                                    <div class="date"><i class="icon-clock"></i>{{ listeningDetail.createdAt | formatDate }}</div>
+                                    <p>
+                                        <a href="javascript:" @click="collect"><i class="fa fa-download mr-1"
+                                                                                            aria-hidden="true"></i>下载当前听力资料</a>
+                                        <a class="d-none" ref="download" :href="listeningDetail.logo" :download="listeningDetail.fileName"></a>
+                                    </p>
+<!--                                    <a href="javascript:" class="ml-2" @click="deleteListening(listeningDetail.id)">删除</a>-->
+                                </div>
+                            </div>
+                            <div class="post-body">
+                                <div class="resource d-flex justify-center align-center">
+                                    <audio v-if="listeningDetail.fileType == 'video'" :src="listeningDetail.logo" width="400" height="150"
+                                           controls></audio>
+                                    <img v-if="listeningDetail.fileType == 'img'" width="400" height="150" :src="listeningDetail.logo" />
+                                </div>
+                                <div class="news-question">
+                                    <ul class="question-list">
+                                        <li class="question-item" v-for="(item,i) in listeningDetail.questions" :key="item.id">
+                                            <p class="d-flex justify-between align-center">
+                                                <span :color="item.isWrong">{{i + 1}}.{{item.title}} <i v-if="item.isWrong"
+                                                                                                        class="fa fa-hand-o-left colred"></i></span>
+                                                <span v-if="isShowAnswer" style="color:#f5862b;font-size:14px;">正确答案
+                                            {{"：" + item.answer}} </span>
+                                            </p>
+                                            <dl class="d-flex flex-start flex-wrap">
+                                                <dd class="options col-md-3 col-xs-12 d-flex align-center" v-if="item.option1">
+                                                    <input :id="'option1' + i" class="mr-1" type="radio" v-model="item.answerTemp"
+                                                           :name="'option' + i" value="A">
+                                                    <label :for="'option1' + i">A.{{item.option1}}</label>
+                                                </dd>
+                                                <dd class="options col-md-3 col-xs-12 d-flex align-center" v-if="item.option2">
+                                                    <input :id="'option2' + i" class="mr-1" type="radio" v-model="item.answerTemp"
+                                                           :name="'option' + i" value="B">
+                                                    <label :for="'option2' + i">B.{{item.option2}}</label>
+                                                </dd>
+                                                <dd class="options col-md-3 col-xs-12 d-flex align-center" v-if="item.option3">
+                                                    <input :id="'option3' + i" class="mr-1" type="radio" v-model="item.answerTemp"
+                                                           :name="'option' + i" value="C">
+                                                    <label :for="'option3' + i">C.{{item.option3}}</label>
+                                                </dd>
+                                                <dd class="options col-md-3 col-xs-12 d-flex align-center" v-if="item.option4">
+                                                    <input :id="'option4' + i" class="mr-1" type="radio" v-model="item.answerTemp"
+                                                           :name="'option' + i" value="D">
+                                                    <label :for="'option4' + i">D.{{item.option4}}</label>
+                                                </dd>
+<!--                                                <dd class="options col-md-3 col-xs-12 d-flex align-center" v-if="item.option5">-->
+<!--                                                    <input :id="'option5' + i" class="mr-1" type="radio" v-model="item.answerTemp"-->
+<!--                                                           :name="'option' + i" value="E">-->
+<!--                                                    <label :for="'option5' + i">E.{{item.option5}}</label>-->
+<!--                                                </dd>-->
+                                            </dl>
+                                        </li>
+                                    </ul>
+                                    <div class="text-center d-flex align-end justify-center mt-3">
+                                        <a href="javascript:" v-if="!hasSubmit" class="border-click"
+                                                style="padding-left:50px;padding-right:50px;" @click="submit">提交</a>
+                                        <a href="javascript:" v-else class="border-click" style="padding-left:50px;padding-right:50px;"
+                                                @click="reTry">重来一次</a>
+                                        <span> <a v-if="!isShowAnswer" class="ml-3"
+                                                  style="font-size:12px;color:#f5862b;cursor: pointer;"
+                                                  @click="isShowAnswer = true">我太难了，就想看答案</a>
+                                    <a v-else class="ml-3" style="font-size:12px;color:#f22424;cursor: pointer;"
+                                       @click="isShowAnswer = false">我就是看看，其实我知道</a>
+                                </span>
+                                        <span>
+                                    <a v-if="!isShowAnalysis" class="ml-3"
+                                       style="font-size:12px;color:#f5862b;cursor: pointer;"
+                                       @click="isShowAnalysis = true">查看解析</a>
+                                    <a v-else class="ml-3" style="font-size:12px;color:#f22424;cursor: pointer;"
+                                       @click="isShowAnalysis = false">先不看</a>
+                                </span>
+
+                                    </div>
+                                    <div class="text-center fs24 pt-5" v-if="listeningDetail.questions != undefined && listeningDetail.questions.length <= 0">
+                                        暂无训练题目
+                                    </div>
+                                </div>
+                                <div class="news-analysis mt-5" v-if="isShowAnalysis">
+                                    <div v-html="listeningDetail.alt"></div>
+                                </div>
+                            </div>
+                            <hr/>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+    <script>
+        let listeningId = '<%= listeningId %>';
+        let app = new Vue({
+            el: '#content',
+            data: {
+                listeningDetail: {
+                    user: {}
+                },
+                isShowAnswer: false,
+                isShowAnalysis: false,
+                hasSubmit: false,
+                score: 0,
+                imgList: ['jpg', 'png', 'gif', 'png', 'webp'],
+                mediaList: ['mp3', 'mp4', 'f4v', 'flv', 'ogv', 'webm', 'wma', 'rm', 'wav', 'midi', 'ape', 'fla']
+            },
+            filters: {
+                formatDate(date) {
+                    return new Date(date).toLocaleString();
+                }
+            },
+            created() {
+                this.getListeningDetail(listeningId)
+            },
+            methods: {
+                collect() {
+                    console.log(this.listeningDetail.id, this.listeningDetail.logo);
+                    $.post('/api/listening/collect', {
+                        listeningId: this.listeningDetail.id,
+                        path: this.listeningDetail.logo
+                    }).done(res => {
+                        if (res.code !== 0) {
+                            layer.msg(res.msg);
+                            return false;
+                        }
+                        layer.msg(res.msg);
+                        this.$refs.download.click();
+                    }).fail(err => {
+                        throw err;
+                    })
+                },
+                getListeningDetail(id) {
+                    $.get('/api/getListeningDetail', { listeningId: id }).done(res => {
+                        if (res.code !== 0) {
+                            layer.msg(res.msg);
+                            return false;
+                        }
+                        this.isShowAnswer = false;
+                        res.data.questions.map((item, index) => {
+                            item.answerTemp = '';
+                            item.isWrong = false;
+                        });
+                        // console.log(res.data);
+                        this.listeningDetail = res.data;
+                        // 用数据库表中没用到的option5字段作为排序的值
+                        this.listeningDetail.questions.sort(this.compare('option5'));
+                        console.log(this.listeningDetail);
+                        this.listeningDetail.fileName = this.listeningDetail.logo.substr(this.listeningDetail.logo.lastIndexOf('-') + 1, this.listeningDetail.logo.lastIndexOf('.'));
+                        this.listeningDetail.fileType = this.imgList.indexOf(this.listeningDetail.logo.substr(this.listeningDetail.logo.lastIndexOf(".") + 1)) > -1 ? "img" : "video"
+                    }).fail(err => {
+                        throw err;
+                    })
+                },
+                compare(property) {
+                    return function (a, b) {
+                        let value1 = a[property];
+                        let value2 = b[property];
+                        return parseInt(value1) - parseInt(value2)
+                    }
+                },
+                submit() {
+                    let hasFinished = true;
+                    for (let i = 0; i < this.listeningDetail.questions.length; i++) {
+                        // 判断是否有答案没有选择
+                        if (!this.listeningDetail.questions[i].answerTemp) {
+                            hasFinished = false;
+                            break;
+                        }
+                    }
+                    if (!hasFinished) {
+                        layer.msg("<h3 style='background:#333;color:#fff;padding:5px 10px'>您还有试题没有答完呢</h3>");
+                        return false;
+                    }
+
+                    // 错题列表
+                    let falseList = [];
+                    // 用于计算分数score
+                    let totalLength = this.listeningDetail.questions.length;
+                    let falseLength = 0;
+                    // 遍历题目正误
+                    this.listeningDetail.questions.map((item, index) => {
+                        console.log('你选择的答案:', item.answerTemp, '正确答案:', item.answer);
+                        // 判断选中的选项是否正确
+                        item.isWrong = item.answer !== item.answerTemp;
+                        // 如果题目错误，错题数加1
+                        item.isWrong ? falseLength++ : '';
+                        // 如果题目错误，错题列表添加相对应题目的索引
+                        item.isWrong ? falseList.push(index + 1) : '';
+                    });
+                    // 记录分数
+                    this.score = (totalLength - falseLength) / totalLength * 100;
+                    let message = this.score < 60 ? `小伙子不行啊,已为您标注错误题：<span style="color:#f5862b;">${falseList.join(",")}</span>` : this.score < 70 ? `继续努力吧,您错误题为：<span style="color:#f5862b;">${falseList.join(",")}</span>` : this.score < 80 ? `还可以,您错误题为：<span style="color:#f5862b;">${falseList.join(",")}</span>` : this.score < 90 ? `成绩不错，加油,您错误题为：<span style="color:#f5862b;">${falseList.join(",")}</span>` : this.score < 100 ? `非常优秀,您错误题为：<span style="color:#f5862b;">${falseList.join(",")}</span>` : "快把我的九齿钉耙拿来给秀儿梳头！";
+                    layer.msg(`您的分数为：<span style="color:#f5862b;">${this.score}%</span>,${message}`)
+
+                    //  提交状态
+                    this.hasSubmit = true;
+                },
+                reTry() {
+                    this.getListeningDetail(listeningId);
+                    this.hasSubmit = false;
+                },
+                deleteListening(id) {
+                    console.log(id);
+                    $.post('/api/listening/delete', {
+                        id
+                    }).done(data => {
+                        if (data.code !== 0) {
+                            console.log(data.msg);
+                            return false;
+                        }
+                        layer.msg(data.msg);
+                        setTimeout(function () {
+                            location.href = '/listening';
+                        }, 500);
+                    }).fail(err => {
+                        throw err;
+                    })
+                }
+            }
+        })
+    </script>
+</body>
+</html>

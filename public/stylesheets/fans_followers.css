@@ -1,0 +1,41 @@
+.fans-count, .followers-count{
+    color: #fff;
+    font-weight: 700;
+    font-size: 18px;
+}
+.fans-list, .followers-list{
+    background-color: #fff;
+    border-radius: 12px;
+}
+.fans-info, .followers-info{
+    padding: 10px;
+    position: relative;
+    margin: 0 30px 0 30px;
+    border-bottom: 1px solid #999;
+}
+.fans-info:last-child, .followers-info:last-child{
+    border-bottom: none;
+}
+.fans-info a, .followers-info a{
+    display: inline-block;
+    height: 50px;
+}
+.fans-info a img, .followers-info a img{
+    display: inline-block;
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+}
+.fans-info a span, .followers-info a span{
+    display: inline-block;
+    margin-left: 20px;
+}
+.isFollowed{
+    height: 50px;
+    line-height: 50px;
+    position: absolute;
+    right: 34px;
+    top: 50%;
+    margin-top: -25px;
+}

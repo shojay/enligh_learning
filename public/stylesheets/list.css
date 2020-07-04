@@ -1,0 +1,59 @@
+.weibo-list > .item-wrapper{
+    position: relative;
+    margin-bottom: 10px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px hsla(0,0%,60%,.12);;
+}
+.user-picture{
+    position: relative;
+    float: left;
+    width: 50px;
+}
+.user-picture > a{
+    display: inline-block;
+    border-radius: 50%;
+}
+.user-picture > a > img{
+    width: 50px;
+    height: 50px;
+}
+
+.content{
+    margin-left: 60px;
+}
+.content > .card-username{
+    position: relative;
+    margin-bottom: 8px;
+    padding-top: 2px;
+}
+.content > .card-username a{
+    font-size: 15px;
+    font-weight: 700;
+    color: #3c3c3c;
+}
+.content > .card-time{
+    margin-bottom: 9px;
+}
+.content > .card-time span{
+    color: #a0a0a0;
+}
+
+.content > .card-content{
+    font-size: 15px;
+    line-height: 20px;
+    margin-bottom: 6px;
+    word-wrap: break-word;
+    color: #535353;
+}
+
+.info{
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+.info a {
+    font-size: 12px;
+    color: #a0a0a0;
+}

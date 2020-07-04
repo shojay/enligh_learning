@@ -1,0 +1,61 @@
+.btns{
+    margin: 35px 20px;
+}
+
+.btns .btn-danger{
+    margin-top: 20px;
+}
+
+.history-record{
+    width: 45%;
+    height: auto;
+    position: relative;
+    background-color: #f0f0f0;
+    padding: 10px;
+}
+
+.history-record .history-record-txt{
+    height: 16px;
+    width: 100%;
+    color: #999;
+}
+
+.history-record .history-record-txt .record-txt{
+    font-size: 14px;
+}
+
+.history-record .history-record-txt .clear-btn{
+    float: right;
+    display: block;
+    font-size: 12px;
+    right: 10px;
+    top: 10px;
+    color: #999;
+    text-decoration: none;
+}
+
+.history-record .history-record-wrapper{
+    padding-top: 10px;
+}
+
+.history-record .history-record-wrapper .no-record{
+    color: #999;
+    text-align: center;
+}
+
+.history-record .history-record-wrapper ul li{
+    display: inline-block;
+    height: 22px;
+    line-height: 12px;
+    border: 1px solid #dcdcdc;
+    white-space: nowrap;
+    color: #999;
+    background-color: #f9f9f9;
+    font-size: 12px;
+    padding: 5px;
+    margin-right: 3px;
+}
+
+.history-record .history-record-wrapper ul li:hover{
+    cursor: pointer;
+}

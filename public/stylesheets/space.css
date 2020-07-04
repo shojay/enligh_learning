@@ -1,0 +1,49 @@
+.banner{
+    width:100%;
+    text-align: center;
+    height: 100%;;
+}
+.banner .table-wrapper{
+    height: 100%;
+    position: relative;
+}
+.banner .table-wrapper table{
+    position: absolute;
+    left: 50%;;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+.banner h2{
+    margin-top:200px;
+    font-family:Impact;
+    font-weight: bold;
+    font-size: 4rem;
+    color:#333;
+    letter-spacing: 4px;
+}
+
+.page-wrapper{
+    position: absolute;
+    left: 40%;
+    bottom: 20%;
+    transform: translateX(-50%);
+}
+
+.page-wrapper .page-li{
+    padding: 0 5px 0 5px;
+}
+
+.page-wrapper .page-li a:hover{
+    color: blue;
+}
+
+.page-wrapper li.active a{
+    color: blue;
+}
+
+@media screen and (max-height: 672px) {
+    .page-wrapper{
+        bottom: 5%;
+    }
+}
+

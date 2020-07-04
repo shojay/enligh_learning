@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <style>
+        .box .table td {
+            vertical-align: middle;
+        }
+
+        .box .table td a:hover {
+            color: #f5862b;
+        }
+
+        .selected{
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+<div class="box vip">
+    <% include ./common/nav.html %>
+    <div id="content" class="mt-2">
+        <div class="search ml-2">
+            <button class="btn btn-warning operateBtn" type="button" id="showSearchBtn" data-toggle="collapse"
+                    data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">查询资料</button>
+            <button class="btn btn-info operateBtn" type="button"
+                    @click="locationHref('/news/topost')">添加资料</button>
+            <div class="collapse mt-2" id="collapseExample">
+                <label for="keywordsName">
+                    <span>关键字:</span>
+                    <input type="text" class="search-text form-control form-control-md" name="" id="keywordsName"
+                           v-model="keywordsName" aria-describedby="helpId" placeholder="关键字查询">
+                </label>
+                <button class="btn btn-dark" id="btnSearch" @click="search">搜索</button>
+            </div>
+        </div>
+
+        <table class="table mt-2">
+            <thead class="text-black">
+            <tr>
+                <th scope="col"><i class="fa fa-list-ul"></i></th>
+                <th scope="col" style="width:200px">资料标题</th>
+                <th scope="col" style="width:200px;">资料摘要</th>
+                <th scope="col">标签</th>
+                <th scope="col" style="width:100px;">缩略图</th>
+                <th scope="col">发布人</th>
+                <th scope="col" style="width:300px;">附件资料(点击链接可下载)</th>
+                <th scope="col">操作</th>
+            </tr>
+            </thead>
+            <tbody id="userList">
+            <tr v-for="(item,i) in tableData" :key="i">
+                <td :title="item.substract">
+                    <label class="btn">
+                        <input class="selectSingle" @click="selectSingle($event,item.id)" type="checkbox"
+                               :data-id="item.id" autocomplete="off">
+                    </label>
+                </td>
+                <td :title="item.title">
+                    {{ item.title || "无" }}
+                </td>
+                <td :title="item.substract">
+                    <div
+                            style="width:200px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;">
+                        {{ item.substract || "无" }}
+                    </div>
+                </td>
+                <td :title="item.tags">
+                    {{ item.tags || "无" }}
+                </td>
+                <td :title="'封面'" style="position: relative;" @click="showImg(item.imgPath, `#showImg${i}`)">
+                    <div style="position: absolute;width:100%;height:100%;z-index: 1;"></div>
+                    <video v-if="item.fileType == 'video'" :src="item.imgPath" height="50" width="50"></video>
+                    <img v-if="item.fileType == 'img'" :src="item.imgPath" width="50" height="50"/>
+                    <img v-if="item.fileType == 'img'" :src="item.imgPath" :id=`showImg${i}` style="display: none;"/>
+                </td>
+                <td :title="item.userName">
+                    {{ item.user.name || "无" }}
+                </td>
+                <td>
+                    <p v-for="(file,j) in item.filePath" :key="i + '-' + j" :title="item.fileName[j]">
+                        <a :href="file" class="colf5" :download="item.fileName[j]">
+                            {{item.fileName[j]}}
+                        </a>
+                    </p>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#edit"
+                            @click="getNewsDetail(item.id, 1)">编辑</button>
+                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#detail"
+                            @click="locationHref('/news/tonewsdetail/' + item.id)">浏览</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                            data-target="#detail" @click="getNewsDetail(item.id)">详情</button>
+                    <button type="button" class="btn btn-sm btn-danger" data-toggle="modal"
+                            data-target="#delete" @click="currentId = item.id">删除</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <!-- 详情 -->
+        <div class="modal fade mg50" id="detail" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">客户信息</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="detailBody">
+                        <div class="form-group clearfix">
+                            <label class="col-md-4 text-right">资料标题：</label>
+                            <span class="col-md-8 text-left">{{newsInfo.title || "无"}}</span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label class="col-md-4 text-right">资料摘要：</label>
+                            <span class="col-md-8 text-left">{{newsInfo.substract}}</span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label class="col-md-4 text-right">标签：</label>
+                            <span class="col-md-8 text-left">{{newsInfo.tags || "无"}}</span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label class="col-md-4 text-right">缩略图：</label>
+                            <span class="col-md-8 text-left"> <img :src="newsInfo.imgPath" height="50" width="50"
+                                                                   onerror="null;src='/images/noimg.jpg'" alt=""></span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label class="col-md-4 text-right">发布人：</label>
+                            <span class="col-md-8 text-left">{{newsInfo.user.name}}</span>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label class="col-md-4 text-right">附件资料：</label>
+                            <span class="col-md-8 text-center">
+                                    <p v-for="(file,j) in newsInfo.filePath" :key="j">
+                                        <a :href="file" class="colf5" :download="file">
+                                            {{newsInfo.fileName[j]}}
+                                        </a>
+                                    </p>
+                                </span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 编辑 -->
+        <div class="modal fade" id="edit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document" style="min-width: 1200px;">
+                <div class="modal-content">
+                    <form id="editForm">
+                        <div class="modal-header">
+                            <h5 class="modal-title">编辑信息</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body" id="editBody">
+                            <div class="form-group">
+                                <label>资料标题：</label>
+                                <input type="text" class="form-control" name="title"
+                                        aria-describedby="helpId" placeholder="" v-model="newsInfo.title">
+                            </div>
+                            <div class="form-group">
+                                <label>资料标签：</label>
+                                <input type="text" class="form-control" name="tag"
+                                        aria-describedby="helpId" placeholder="" v-model="newsInfo.tags">
+                            </div>
+                            <div class="form-group">
+                                <label>摘要：</label>
+                                <textarea rows="3" class="form-control" name="abstract"
+                                       aria-describedby="helpId" placeholder="" v-model="newsInfo.substract">
+                                </textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>正文：</label>
+                                <div id="editor"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" @click="editNews(newsInfo.id)">保存</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+        <!-- 删除 -->
+        <div class="modal fade" id="delete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">删除警告</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        您确定要删除选中记录么？
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-danger" @click="deleteNews(currentId)"
+                                id="btnDel">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="deleteGroup text-left ml20 ml-2">
+            <button type="button" class="btn btn-primary" @click="btnSelectAll" id="btnSelectAll">全选/全不选</button>
+            <button type="button" class="btn btn-danger ml20" data-toggle="modal" data-target="#delete"
+                    id="btnDelAll">批量删除</button>
+        </div>
+        <nav aria-label="Page navigation" class="pager flex-row" id="pager">
+            <ul class="pagination justify-content-center">
+                <li>
+                    <a href="javascript:;" id="prev" aria-label="Previous" @click="goPage(-1)">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li v-for="(item, i) in pages" :key="i" style="padding: 0 5px 0 5px">
+                    <a href="javascript:;" :class="item == pageNow ? 'selected' : ''" :data-page="item" @click="goPage(item)">{{ item }}</a>
+                </li>
+                <li>
+                    <a href="javascript:;" id="next" aria-label="Next" @click="goPage(-2)">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+<script>
+    let editor = undefined;
+    let app = new Vue({
+        el: '#content',
+        data: {
+            pageNow: 1,
+            pageSize: 5,
+            pages: [],
+            tableData: [],
+            idGroup: [],
+            isSelectAll: false,
+            keywordsName: '',
+            newsInfo: {
+                user: {}
+            },
+            newsAddInfi: {},
+            currentId: '',
+            imgList: ['jpg', 'jpeg', 'gif', 'png', 'webp'],
+            mediaList: ['mp3', 'mp4', 'f4v', 'flv', 'ogv', 'webm', 'wma', 'rm', 'wav', 'midi', 'ape', 'fla']
+        },
+        filters: {
+            formatDate(date) {
+                return new Date(date).toLocaleString();
+            }
+        },
+        created() {
+            this.getTableData();
+        },
+        mounted() {
+            let E = window.wangEditor;
+            // new 编辑器对象
+            editor = new E('#editor');
+            editor.customConfig.uploadImgShowBase64 = true; // 使用base64保存图片
+            editor.create();
+            editor.customConfig.uploadImgShowBase64 = true;
+            // editor.customConfig.uploadImgServer = '/api/uploadImg'; // 配置上传图片服务端地址
+            // editor.customConfig.uploadVideoServer = '/uploadFile'; // 配置上传视频服务端地址
+            // editor.customConfig.uploadVideoHooks = {
+            //     customInsert: function (insertImg, result, editor) {
+            //         let url = result.data; // 获取后台返回的url
+            //         console.log('video url = ' + url);
+            //         insertImg(url);
+            //     }
+            // };
+        },
+        methods: {
+            search() {
+                this.getTableData();
+            },
+            getTableData() {
+                $.get('/api/getNews', {
+                    searchKey: this.keywordsName,
+                    pageNow: this.pageNow,
+                    pageSize: this.pageSize
+                }).then(res => {
+                    console.log(res);
+                    if (res.code !== 0) {
+                        layer.msg(res.msg);
+                        return false;
+                    }
+                    this.tableData = res.news;
+                    this.tableData.map((item, index) => {
+                        item.fileName = item.fileName ? item.fileName.split(' ') : [];
+                        item.filePath = item.filePath ? item.filePath.split(' ') : [];
+                        console.log(item.filePath);
+                        item.fileName.map((_item, index) => {
+                            item.fileName[index] = _item.substr(_item.lastIndexOf('-') + 1);
+                        });
+                        item.fileType = this.imgList.indexOf(item.imgPath.substr(item.imgPath.lastIndexOf('.') + 1)) > -1 ? 'img' : 'video';
+                    });
+                    console.log(this.tableData);
+                    this.getPages();
+                })
+            },
+            getPages() {
+                $.get('/api/getPages', {
+                    searchKey: this.keywordsName,
+                    pageNow: this.pageNow,
+                    pageSize: this.pageSize
+                }).then(res => {
+                    console.log(res);
+                    if (res.code !== 0) {
+                        layer.msg(res.msg);
+                        return false;
+                    }
+                    this.pages = res.pages;
+                })
+            },
+            goPage(i) {
+                if (i === this.pageNow) return;
+                if (this.pageNow === 1 && i === -1) return;
+                if (this.pageNow === this.pages[this.pages.length - 1] && i === -2) return;
+                this.pageNow = i === - 1 ? this.pageNow - 1 : i === -2 ? this.pageNow + 1 : i;
+                this.getTableData()
+            },
+            deleteById(id) {
+                $.post('/api/news/deleteNews', { id }).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        console.log(data.msg);
+                        return false;
+                    }
+                    layer.msg('删除成功');
+                    this.getTableData();
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            deleteByIdGroup(arr) {
+                location.reload();
+                $.post('/api/news/deleteNews', { idGroup: arr.join(',') }).done(data => {
+                    console.log(data);
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    layer.msg('批量删除成功');
+                    this.getTableData();
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            btnSelectAll() {
+                if (!this.isSelectAll) {
+                    this.idGroup = [];
+                    $('.selectSingle').each((index, item) => {
+                        $(item).prop('checked', true);
+                        this.idGroup.push($(item).data('id'));
+                    });
+                    this.isSelectAll = true;
+                } else {
+                    $('.selectSingle').each((index, item) => {
+                        $(item).prop('checked', false);
+                    });
+                    this.idGroup = [];
+                    this.isSelectAll = false;
+                }
+                console.log('idGroup:', this.idGroup);
+            },
+            selectSingle(e, id) {
+                if ($(e.target).prop('checked')) {
+                    this.idGroup.push(id);
+                } else {
+                    let index = this.idGroup.indexOf(id);
+                    this.idGroup.splice(index, 1);
+                }
+                console.log('idGroup:', this.idGroup);
+            },
+            getNewsDetail(id, type = 0) {
+                $.get('/api/getNewsDetail', { newsId: id }).done(data => {
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    this.newsInfo = data.newsDetail;
+                    this.newsInfo.fileName = this.newsInfo.fileName ? this.newsInfo.fileName.split(" ") : [];
+                    this.newsInfo.filePath = this.newsInfo.filePath ? this.newsInfo.filePath.split(" ") : [];
+                    console.log(this.newsInfo.filePath);
+                    this.newsInfo.fileName.map((item, index) => {
+                        this.newsInfo.fileName[index] = item.substr(item.lastIndexOf("-") + 1);
+                    });
+                    editor.txt.html(this.newsInfo.content); // 设置内容到富文本编辑器
+                    console.log('newsInfo: ',this.newsInfo)
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            editNews(id) {
+                console.log(id, editor.txt.html());
+                let that = this;
+                $.post('/api/news/editNews', {
+                    id,
+                    title: that.newsInfo.title,
+                    tags: that.newsInfo.tags,
+                    content: editor.txt.html(),
+                    substract: that.newsInfo.substract
+                }).done(res => {
+                    console.log(res);
+                    if (res.code !== 0) {
+                        layer.msg(res.msg);
+                        return false;
+                    }
+                    layer.msg('修改成功');
+                    $('#edit').modal('hide');
+                    this.getTableData();
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            deleteNews(id) {
+                id ? this.deleteById(id) : this.deleteByIdGroup(this.idGroup);
+                $("#delete").modal("hide")
+            },
+            locationHref(url) {
+                location.href = url;
+            },
+            showImg(url, id) {
+                console.log(url);
+                if (!url) return;
+                let status = this.imgList.indexOf(url.substr(url.lastIndexOf(".") + 1)) > -1 ? "img" : "video";
+                let content = status === "video" ? `<video style="width:500px;height:300px" src="${url}" autoplay="false" controls></video>` : `<img style="width:500px;height:300px" src="${url}" />`
+
+                if (status === 'video') {
+                    layer.open({
+                        type: 2,
+                        title: false,
+                        area: ['630px', '360px'],
+                        shade: 0.8,
+                        closeBtn: 0,
+                        shadeClose: true,
+                        content: url
+                    });
+                } else {
+                    layer.open({
+                        type: 1,
+                        title: false,
+                        closeBtn: 0,
+                        id: 'LAY_layuipro', //设定一个id，防止重复弹出
+                        area: ['auto'],
+                        skin: 'layui-layer-nobg', //没有背景色
+                        shadeClose: true,
+                        content: $(id),
+                        end() {
+                            $(id).css('display', 'none')
+                        }
+                    });
+                }
+            },
+            mounted() {
+                $("#delete").on("hide.bs.modal", () => {
+                    this.currentId = ""
+                })
+            }
+        }
+    })
+</script>
+</body>
+</html>

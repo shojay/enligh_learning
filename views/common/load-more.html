@@ -1,0 +1,36 @@
+<div class="mb-3">
+    <button id="btn-load-more" type="button" class="btn btn-sm btn-lg btn-block">点击加载更多</button>
+</div>
+<script>
+    let PAGE_SIZE = '<%= pageSize%>' - 0;
+    let PAGE_INDEX =  '<%= pageIndex%>' - 0;
+    let COUNT =  '<%= count%>' - 0;
+    let $btnLoadMore = $('#btn-load-more');
+    let $containerWeiboList = $('<%= containerSelector%>');
+    let api = '<%= api%>';
+
+    // 加载更多
+    $btnLoadMore.click(function () {
+        let nextPageIndex = PAGE_INDEX + 1;
+        $.get(api + '/' + nextPageIndex).done(data => {
+            console.log('data', data);
+            // 更新 pageIndex
+            PAGE_INDEX = data.pageIndex;
+
+            // 是否要隐藏“加载更多”
+            if ((PAGE_INDEX + 1) * PAGE_SIZE >= COUNT) {
+                $btnLoadMore.hide()
+            }
+
+            // 渲染页面
+            let $tempContainer = $(data.blogListTpl);
+            $tempContainer.each(function (index, item) {
+                if (item.nodeType !== 1) {
+                    // 不是 DOM 元素，是其他（如 #TEXT 类型）
+                    return
+                }
+                $containerWeiboList.append($(item))
+            });
+        })
+    })
+</script>

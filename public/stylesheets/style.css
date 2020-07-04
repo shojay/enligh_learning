@@ -1,0 +1,181 @@
+body{
+  font-family: "Microsoft YaHei", serif;
+}
+/* login.html */
+.logined{
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.logined a{
+  color: blue;
+}
+
+/* nav.html */
+.header-bg {
+  background-color: #fff;
+  box-shadow: 0 1px 1px #999;
+}
+
+.header {
+  width: 980px;
+  margin: 0 auto;
+  height: 80px;
+  line-height: 80px;
+  font-size: 18px;
+}
+
+.header-router {
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.header-router .header-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-router .header-logo a{
+  display: block;
+}
+
+.header-router .header-logo img {
+  vertical-align: middle;
+}
+
+.header-nav li {
+  text-align: center;
+}
+
+.header-nav a {
+  color: #333;
+  margin-right: 50px;
+  text-decoration: none;
+  transition: color 0.6s;
+}
+
+.header-nav li:nth-last-of-type(1) a {
+  margin-right: 0;
+}
+
+.header-nav a:hover {
+  color: #f5862b;
+  text-decoration: none;
+}
+
+.header-nav .on a {
+  color: #f5862b;
+}
+
+.header-nav {
+  display: flex;
+  justify-content: center;
+}
+
+.nav-news, .nav-course {
+  height: 100%;
+  position: relative;
+}
+
+.nav-news-down-list, .nav-course-down-list {
+  position: absolute;
+  top: 80px;
+  left: -20px;
+  z-index: 9999;
+  line-height: 30px;
+  font-size: 12px;
+  background: rgb(255, 255, 255);
+  border-top: 1px solid #eee;
+  box-shadow: 1px 1px 1px #999;
+  width: 100%;
+  padding: 0;
+  display: none;
+}
+
+
+.nav-news-down-list li, .nav-course-down-list li {
+  text-align: center;
+}
+
+.nav-news-down-list a, .nav-course-down-list a {
+  color: #333 !important;
+  display: block;
+  width: 100%;
+}
+
+.nav-news-down-list a:hover, .nav-course-down-list a:hover {
+  color: #f5862b !important;
+}
+
+.user-info {
+  width: 160px;
+}
+
+.user-info a {
+  color: #333;
+  text-decoration: none;
+}
+
+.user-info a:hover {
+  color: #f5862b;
+  text-decoration: none;
+}
+
+/* nav.html nav width < 736px */
+.dropdownMenu{
+  position: absolute;
+  display: block;
+  width: 50px;
+  height: 50px;
+  right: 10px;
+  top: 50%;
+  margin-top: -25px;
+  line-height: 50px;
+}
+
+.nav-change{
+  position: absolute;;
+  background-color: #fff;
+  padding: 0;
+  top: -81px;
+  display: block;
+  z-index: 1;
+  width: 100%;
+  overflow: hidden;
+}
+.header-nav-change{
+  top: -481px;
+}
+.fix-userInfo-height{
+  height: 80px;
+  box-shadow: 0 1px 1px #ddd;
+}
+.logined-fit-content{
+  width: fit-content;
+  margin: 0 auto;
+}
+.logined-fit-content-float{
+  float: left;
+}
+
+.navs-li-box-shadow{
+  box-shadow: 0 1px 1px #ddd;
+}
+.navs-li-box-shadow-a{
+  display: block;
+  margin: 0 auto;
+}
+
+.fix-width-a {
+  width: 100%;
+}
+
+.navs-down-list {
+  position: absolute;
+  left: 0;
+  top: 81px;
+  padding: 0;
+}

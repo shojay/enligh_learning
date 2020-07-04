@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" class="wide wow-animation smoothscroll scrollTo">
+<head>
+  <% include ./common/head.html %>
+  <link rel="stylesheet" href="/stylesheets/index.css">
+</head>
+<body>
+  <div class="box">
+    <% include ./common/nav.html %>
+    <div id="app" class="home">
+      <div class="content">
+        <div class="activebg fisrtbg" id="pic1"
+             :style="{'background-position-y': positionY1+'px' }">
+        </div>
+        <div class="content-item container">
+          <div class="content">
+            <div class="icon">
+              <i class="fa fa-book fa-5x" aria-hidden="true"></i>
+            </div>
+            <div class="txt-wrap">
+              <h2>翻译,</h2>
+              <h2>只需简单一步</h2>
+              <p>只需输入要翻译的汉字</p>
+              <p>无论如何都可以将它翻译出来</p>
+              <a href="/translate/totranslate">进入翻译&rsaquo;</a>
+            </div>
+          </div>
+        </div>
+        <div class="activebg secondbg" id="pic2"
+             :style="{'background-position-y': positionY2+'px' }">
+        </div>
+        <div class="content-item container">
+          <div class="content">
+            <div class="icon">
+              <i class="fa fa-newspaper-o fa-5x" aria-hidden="true"></i>
+            </div>
+            <div class="txt-wrap">
+              <h2>资料,</h2>
+              <h2>不仅仅是文章</h2>
+              <p>这里面有优质的英语文章</p>
+              <p>甚至还有一些英文视频来供您观看</p>
+              <a href="/news/tonews">点击进入&rsaquo;</a>
+            </div>
+          </div>
+        </div>
+        <div class="activebg thirdbg" id="pic3"
+             :style="{'background-position-y': positionY3+'px' }">
+        </div>
+        <div class="content-item">
+          <div class="content-item container">
+            <div class="content">
+              <div class="icon">
+                <i class="fa fa-headphones fa-5x" aria-hidden="true"></i>
+              </div>
+              <div class="txt-wrap">
+                <h2>听力,</h2>
+                <h2>帮助您更进一步</h2>
+                <p>这里面有优质的听力练习</p>
+                <p>通过听力来练习您的英语听力水平</p>
+                <a href="/listening">点击进入&rsaquo;</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="activebg fourthbg" id="pic4"
+             :style="{'background-position-y': positionY3+'px' }">
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let app = new Vue({
+      el: '#app',
+      data: {
+        ratio: 0.05,
+        positionY1: 0,
+        positionY2: 0,
+        positionY3: 0
+      },
+      mounted () {
+        window.addEventListener('scroll', this.handleScroll);
+        this.searchHref()
+      },
+      methods: {
+        searchHref() {
+          let search = location.search.split('?')[1] || '';
+          let sKey = search.split('=')[0] || '';
+          let sVal = search.split('=')[1] || '';
+          if (!search) {
+            return false;
+          } else {
+            location.href = '/news/tonewsdetail/' + sVal;
+          }
+        },
+        handleScroll () {
+          let scrollTop =
+                  window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+          this.positionY1 = -scrollTop * this.ratio;
+          this.positionY2 = -scrollTop * this.ratio;
+          this.positionY3 = -scrollTop * this.ratio;
+          if (scrollTop > 300) {
+            console.log(1);
+            $('#header').css({
+              'position': 'fixed',
+              'z-index': '9999',
+              'width': '100%',
+              'top': '-80px'
+            }).animate({
+              'top': '0px'
+            });
+          }
+        }
+      }
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/article.css">
+    <script src="/javascripts/skel.min.js"></script>
+    <script src="/javascripts/article.js"></script>
+    <style>
+        .enterDetail, .enterDetail a, .enterPage, .enterPage a{
+            transition: all .5s;
+        }
+        .enterDetail:hover, .enterPage:hover{
+            background-color: rgb(154, 154, 154);
+            border: 1px solid #fff;
+        }
+        .enterDetail:hover a, .enterPage:hover a{
+            color: #fff;
+        }
+    </style>
+</head>
+<body style="background: rgb(244, 244, 244);">
+<div class="box">
+    <% include ./common/nav.html %>
+    <div id="wrapper">
+
+        <!-- Main -->
+        <div id="main">
+
+            <div id="content">
+                <h3 class="d-flex justify-content-center align-items-center">
+                    <span class="mr-2">资料专区</span>
+                    <div class="filter d-flex align-items-center justify-content-center">
+                        <input class="form-control colfff mr5" style="width:200px;" v-model="searchKey" @keyup.enter="search"
+                               placeholder="输入标题或者标签"/>
+                        <i class="fa fa-search ml-2" @click="search" style="font-size:24px;cursor: pointer;"
+                           aria-hidden="true"></i>
+                    </div>
+                </h3>
+                <!-- Post -->
+                <article class="post" v-for="(n,i) in news" :key="n.id">
+                    <header>
+                        <div class="title">
+                            <h2 @click="toNewsDetail(n.id)">{{ n.title }}</h2>
+                        </div>
+                        <div class="meta">
+                            <time class="published">{{ n.createdAt.slice(0,10) }}</time>
+                            <a href="javascript:;" class="author"><span class="name">{{ n.user.name }}</span></a>
+                        </div>
+                    </header>
+                    <a href="javascript:;" class="image featured">
+                        <!-- <video class="video" v-if="n.fileType == 'video'" :src="n.imgPath"
+                               controls></video> -->
+                        <img v-if="n.fileType == 'img'" :src="n.imgPath" />
+                        <!-- <img v-else width="100%" height="378px" :src="n.imgPath" alt="else"/> -->
+                    </a>
+                    <p>{{ n.substract }}</p>
+                    <footer>
+                        <ul class="actions">
+                            <li class="enter-button enterDetail" style="text-align: center;padding:10px 0;"><a href="javascript:;" :href="'/news/tonewsdetail/'+ n.id"
+                            style="border: none;display: block;">继续阅读</a></li>
+                        </ul>
+                    </footer>
+                </article>
+                <div v-if="!news.length" class='text-center' style='padding:100px 0;color:#000;'>暂时还没有相关学习资料<^_^></div>
+
+                <!-- Pagination -->
+                <ul class="actions pagination d-flex justify-content-center align-items-center row">
+                    <li class="offset-4" style="display: none"></li>
+                    <li v-if="pageType == 1" class="text-center col-4 enterPage">
+                        <a href="javascript:" @click="changePage(-1)" style="border: none;">上一页</a>
+                    </li>
+                    <li v-if='pageType == 1' class="text-center col-4 enterPage">
+                        <a href="javascript:" @click="changePage(-2)" style="border: none;">下一页</a>
+                    </li>
+                    <li v-if="pageType == 2" class="text-center col-4 enterPage">
+                        <a href="javascript:" @click="goPage(-1, 2, 'img')" style="border: none;">上一页</a>
+                    </li>
+                    <li v-if="pageType == 2" class="text-center col-4 enterPage">
+                        <a href="javascript:" @click="goPage(1, 2, 'img')" style="border: none;">下一页</a>
+                    </li>
+                    <li v-if="pageType == 3" class="text-center col-4 enterPage">
+                        <a href="javascript:" @click="goPage(-1, 3, 'video')" style="border: none;">上一页</a>
+                    </li>
+                    <li v-if="pageType == 3" class="text-center col-4 enterPage">
+                        <a href="javascript:" @click="goPage(1, 3, 'video')" style="border: none;">下一页</a>
+                    </li>
+                    <li class="offset-4" style="display: none;"></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <section id="sidebar">
+            <!-- Intro -->
+            <section id="intro">
+                <header>
+                    <h2>文章/课程</h2>
+                    <p>在这里可以浏览有趣的文章和课程<a href="javascript:">NOW COME</a></p>
+                </header>
+            </section>
+            <nav class="sidebar-nav">
+                <ul class="sidebar-ul" @click="select($event)">
+                    <li class="sidebar-item pb-2">
+                        <a href="javascript:" class="pl-2 all selected">全部</a>
+                    </li>
+                    <li class="sidebar-item pb-2 pl-2">
+                        <a href="javascript:" class="pl-2 articles">文章</a>
+                    </li>
+                    <li class="sidebar-item pb-2 pl-2">
+                        <a href="javascript:" class="pl-2 courses">视频</a>
+                    </li>
+                </ul>
+            </nav>
+        </section>
+
+    </div>
+</div>
+<script>
+    let app = new Vue({
+        el: '#wrapper',
+        data: {
+            pageSize: 5,
+            pageNow: 1,
+            pages: [],
+            searchKey: '',
+            news: [],
+            newsTemp: [],
+            active: 1,
+            articleLength: 0,
+            courseLength: 0,
+            pageType: 1,
+            imgList: ['jpg', 'jpeg', 'gif', 'png', 'webp'],
+            mediaList: ['mp3', 'mp4', 'f4v', 'flv', 'ogv', 'webm', 'wma', 'rm', 'wav', 'midi', 'ape', 'fla']
+        },
+        mounted() {
+            this.init(this.searchKey, 100, 1);
+            // this.getNews(this.searchKey, this.pageSize, this.pageNow);
+            this.getNewsFromTags();
+        },
+        methods: {
+            init(searchKey, pageSize, pageNow) {
+                 $.get('/api/getNews', { searchKey, pageSize, pageNow }).done(data => {
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    this.newsTemp = data.news;
+                    this.newsTemp.map((item, index) => {
+                        item.fileType = this.imgList.indexOf(item.imgPath.substr(item.imgPath.lastIndexOf('.') + 1)) > -1 ? 'img' :
+                            item.imgPath ? 'video' : '';
+                    });
+                    this.articleLength = this.newsTemp.filter((item, index) => {
+                        return item.fileType === 'img'
+                    }).length;
+                    this.courseLength = this.newsTemp.filter((item, index) => {
+                        return item.fileType === 'video'
+                    }).length;
+                    console.log(this.articleLength, this.courseLength);
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            select(e) {
+                let eTarget = e.target;
+                if (eTarget.innerText === '全部' && !$(eTarget).hasClass('selected')) {
+                    $('.articles,.courses').removeClass('selected');
+                    $('.all').addClass('selected');
+                    this.pageNow = 1;
+                    this.getNews(this.searchKey, this.pageSize, this.pageNow);
+                    this.pageType = 1;
+                }
+                if (eTarget.innerText === '文章' && !$(eTarget).hasClass('selected') ) {
+                    $('.all,.courses').removeClass('selected');
+                    $('.articles').addClass('selected');
+                    this.news = this.newsTemp.filter((item, index) => {
+                        return item.fileType === 'img'
+                    }).slice(0, 5);
+                    this.pageType = 2;
+                    this.pageNow = 1;
+                }
+                if (eTarget.innerText === '视频' && !$(eTarget).hasClass('selected')) {
+                    $('.all,.articles').removeClass('selected');
+                    $('.courses').addClass('selected');
+                    this.news = this.newsTemp.filter((item, index) => {
+                        return item.fileType === 'video'
+                    }).slice(0, 5);
+                    this.pageType = 3;
+                    this.pageNow = 1;
+                }
+            },
+            goPage(i, type, fileType) {
+                if (this.pageNow - 1 + i < 0) {
+                    layer.msg('没有上一页了！');
+                    return false;
+                }
+                // 如果是文章筛选页
+                if (type === 2) {
+                    let articlePages = this.articleLength < 5 ? 1 : (this.articleLength / 5 + 1);
+                    if (this.pageNow + i > articlePages) {
+                        layer.msg('没有下一页了！');
+                        return false;
+                    }
+                }
+                // 如果是课程筛选页
+                if (type === 3) {
+                    let coursePages = this.courseLength < 5 ? 1 : (this.courseLength / 5 + 1);
+                    if (this.pageNow + i > coursePages) {
+                        layer.msg('没有下一页了！');
+                        return false;
+                    }
+                }
+                // 下一页
+                if (i > 0) {
+                    this.pageNow++;
+                }
+                // 上一页
+                if (i < 0) {
+                    this.pageNow--;
+                }
+                // 过滤出来为fileType类型的news数组，最多5条数据
+                this.news = this.newsTemp.filter((item, index) => {
+                    return item.fileType === fileType
+                }).slice((this.pageNow - 1) * 5, this.pageNow * 5);
+                $('html, body').prop({
+                    'scrollTop': '0px'
+                });
+            },
+            getNewsFromTags() {
+                let searchVal = window.location.search;
+                searchVal = searchVal.slice(searchVal.lastIndexOf('=') + 1);
+                console.log(decodeURI(searchVal))
+                this.getNews(decodeURI(searchVal), this.pageSize, this.pageNow);
+            },
+            search() {
+                this.getNews(this.searchKey, this.pageSize, this.pageNow)
+            },
+            changePage(i) {
+                if (i === this.pageNow) return false; // 如果点击当前分页，那么什么都不做
+                // 如果分页位于第一页且点击上一页，那么什么都不做
+                if (this.pageNow === 1 && i === -1) {
+                    layer.msg('没有上一页了！');
+                    return false;
+                }
+                // 如果当前分页为最后一页且点击下一页，那么什么都不做
+                if (this.pageNow === this.pages[this.pages.length - 1] && i === -2) {
+                    layer.msg('没有下一页了！');
+                    return false;
+                }
+                // 不是以上情况的话
+                this.pageNow = i === -1 ? this.pageNow - 1 : i === -2 ? this.pageNow + 1 : i;
+                this.getNews(this.searchKey, this.pageSize, this.pageNow);
+                $('html, body').prop({
+                    'scrollTop': '0px'
+                });
+            },
+            getPages(searchKey, pageSize, pageNow) {
+                $.get('/api/getPages', { searchKey, pageSize, pageNow }).done(data => {
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    this.pages = data.pages;
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            getNews(searchKey, pageSize, pageNow) {
+                $.get('/api/getNews', { searchKey, pageSize, pageNow }).done(data => {
+                    if (data.code !== 0) {
+                        layer.msg(data.msg);
+                        return false;
+                    }
+                    this.news = data.news;
+                    this.news.map((item, index) => {
+                        item.fileType = this.imgList.indexOf(item.imgPath.substr(item.imgPath.lastIndexOf('.') + 1)) > -1 ? 'img' :
+                        item.imgPath ? 'video' : '';
+                    });
+                    this.getPages(this.searchKey, this.pageSize, this.pageNow);
+                }).fail(err => {
+                    throw err;
+                })
+            },
+            toNewsDetail(id) {
+                location.href = '/news/tonewsdetail/' + id;
+            }
+        }
+    })
+</script>
+</body>
+</html>

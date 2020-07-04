@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/left.css">
+    <link rel="stylesheet" href="/stylesheets/fans_followers.css">
+    <style>
+        body{
+            background: linear-gradient(rgba(255, 93, 35, 0.68) 0%, rgba(113, 144, 254, 0.9) 135%) fixed;
+        }
+        .container{
+            min-width: 767px!important;
+        }
+    </style>
+</head>
+<body>
+<div class="box">
+    <% include ./common/nav.html %>
+    <div class="container">
+        <div class="row position-relative">
+            <%- include('./common/nav-list.html')%>
+            <div class="col-10 fans-wrapper mt-3">
+                <div class="fans-count mb-2 ml-2">
+                    粉丝（<%= userData.fansData.count%>）
+                </div>
+                <div class="fans-list">
+                    <% userData.fansData.list.forEach(fan => { %>
+                    <div class="fans-info">
+                        <a href="/blog/profile/<%= fan.name%>">
+                            <img src="<%= fan.picture%>"/>
+                            <span><%= fan.name%></span>
+                        </a>
+                        <!--                    <div class="isFollowed">-->
+                        <!--                        <button class="followed btn btn-danger" style="display: none;">已关注</button>-->
+                        <!--                        <button class="unFollowed btn btn-primary" style="display: none;">关注</button>-->
+                        <!--                    </div>-->
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+    <%- include('./common/nav-trans.js') %>;
+        $('#my-fans').addClass('active');
+    })
+</script>
+</body>
+</html>

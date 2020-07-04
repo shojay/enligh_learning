@@ -1,0 +1,204 @@
+<header class="header-bg" id="header" style="position: relative;z-index: 50;">
+    <nav class="header container">
+        <div class="header-router">
+            <div class="header-logo">
+                <a href="/">
+                    <img width='50' style="border-radius:50%;" height='50' src='/images/logo.jpg' alt=''>
+                </a>
+            </div>
+
+            <ul class="header-nav" id="header-nav">
+                <li data-nav="index">
+                    <a href="/">
+                        <span>首页</span>
+                    </a>
+                </li>
+                <li data-nav="translate">
+                    <a href="/translate/totranslate">
+                        <span>我会翻译</span>
+                    </a>
+                </li>
+                <li data-nav="news" class="nav-news">
+                    <% if (userType == 2) { %>
+                    <a href="javascript:;">
+                        <span>资料专区</span>
+                        <i id="newsIcon" class="fa fa-angle-down" aria-hidden="true"></i>
+                    </a>
+                    <ul class="nav-news-down-list">
+                        <li><a href="/news/tonews">资料信息</a></li>
+                        <li><a href="/news/topost">资料发布</a></li>
+                    </ul>
+                    <% } else { %>
+                    <a href="/news/tonews">
+                        <span>资料专区</span>
+                    </a>
+                    <% } %>
+                </li>
+                <li data-nav="courses" class="nav-course">
+                    <% if (userType == 2) { %>
+                     <a href="javascript:">
+                         <span>听力练习</span>
+                         <i id="courseIcon" class="fa fa-angle-down" aria-hidden="true"></i>
+                     </a>
+                     <ul class="nav-course-down-list">
+                         <li><a href="/listening">听力信息</a></li>
+                         <li><a href="/listening/post/postPractice">发布听力</a></li>
+                     </ul>
+                    <% } else { %>
+                     <a href="/listening">
+                         <span>听力专区</span>
+                     </a>
+                    <% } %>
+                </li>
+                <% if (userType == 2) { %>
+                <li data-nav="vipmanage">
+                    <a href="/users/tovipmanage">
+                        <span>会员管理</span>
+                    </a>
+                </li>
+                <li data-nav="newsmanage">
+                    <a href="/news/tonewsmanage">
+                        <span>资料管理</span>
+                    </a>
+                </li>
+                <% } %>
+                <li data-nav="blog" class='community'>
+                    <a href="/blog">
+                        <span>学习讨论</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="user-info" id="userInfo">
+                <ul>
+                    <li>
+                        <a href="/users/login">
+                            <span>登录</span>
+                        </a>
+                        <a href="/users/register">
+                            <span>注册</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div id="dropdownMenu" class="visible-sm visible-xs"><i class="fa fa-bars ham-icon" id="ham-icon" aria-hidden="true"></i></div>
+        </div>
+    </nav>
+</header>
+<script>
+    let dropdownFlag = 0;
+    window.addEventListener('DOMContentLoaded', resizeDom);
+    $('#ham-icon').click(function () {
+        if (dropdownFlag === 0) {
+            $('#header-nav').animate({
+                'top': '81px'
+            }, 400);
+            // $('#userInfo').animate({
+            //     'top': '81px'
+            // }, 500);
+            dropdownFlag = 1;
+            return false;
+        } else {
+            $('#header-nav').animate({
+                'top': '-481px'
+            }, 400);
+            // $('#userInfo').animate({
+            //     'top': '-81px'
+            // }, 500);
+            dropdownFlag = 0;
+            return false;
+        }
+    });
+    function resizeDom() {
+        let sWidth = window.innerWidth;
+        if (sWidth <= 1200) {
+            $('.ham-icon').css({
+                'visibility': 'visible'
+            });
+            $('#dropdownMenu').addClass('dropdownMenu');
+            $('#header-nav,#userInfo').addClass('nav-change');
+            $('.nav-change').css('left', '0')
+            $('#header-nav').addClass('header-nav-change');
+            $('#userInfo').addClass('fix-userInfo-height');
+            $('.hasLogined li').addClass('logined-fit-content');
+            $('.hasLogined li a').addClass('logined-fit-content-float');
+            $('#userInfo li, #header-nav li').addClass('navs-li-box-shadow');
+            $('#header-nav li a, #userInfo li a').addClass('navs-li-box-shadow-a');
+            $('#header-nav li a').addClass('fix-width-a');
+            $('.community').css('display', 'none')
+            $('.nav-news-down-list, .nav-course-down-list').addClass('navs-down-list');
+        } else {
+            $('.ham-icon').css({
+                'visibility': 'hidden'
+            });
+            $('#dropdownMenu').removeClass('dropdownMenu');
+            $('#header-nav,#userInfo').removeClass('nav-change');
+            $('#header-nav').removeClass('header-nav-change');
+            $('#userInfo').removeClass('fix-userInfo-height');
+            $('.hasLogined li').removeClass('logined-fit-content');
+            $('.hasLogined li a').removeClass('logined-fit-content-float');
+            $('#userInfo li, #header-nav li').removeClass('navs-li-box-shadow');
+            $('#header-nav li a, #userInfo li a').removeClass('navs-li-box-shadow-a');
+            $('#header-nav li a').removeClass('fix-width-a');
+            $('.community').css('display', 'block')
+            $('.nav-news-down-list, .nav-course-down-list').removeClass('navs-down-list');
+        }
+    }
+    $(window).resize(resizeDom);
+    let user = $.cookie("userInfo");
+    if (user) {
+        // console.log(user.length);
+        let userInfo;
+        if (user.length > 10) {
+            user = JSON.parse(user);
+            userInfo = `
+                <ul class="hasLogined ml-2">
+                    <li>
+                        <a href="/users/tospace/${user.id || ''}">
+                            <span>${user.name || user.account}</span>
+                        </a>
+                        <a href="javascript:;" onclick="logout()">
+                            <span>退出</span>
+                        </a>
+                    </li>
+                </ul>
+              `
+        } else {
+            userInfo = `
+                <ul>
+                    <li>
+                        <a href="/users/login">
+                            <span>登录</span>
+                        </a>
+                        <a href="/users/register">
+                            <span>注册</span>
+                        </a>
+                    </li>
+                </ul>
+            `
+        }
+        $("#userInfo").html(userInfo);
+    }
+    $(".nav-news").mouseover(function () {
+        $(".nav-news-down-list").stop().slideDown();
+        $("#newsIcon").addClass("fa-angle-up").removeClass("fa-angle-down")
+    }).mouseleave(function () {
+        $(".nav-news-down-list").stop().slideUp();
+        $("#newsIcon").addClass("fa-angle-down").removeClass("fa-angle-up")
+    });
+    $(".nav-course").mouseover(function () {
+        $(".nav-course-down-list").stop().slideDown();
+        $("#courseIcon").addClass("fa-angle-up").removeClass("fa-angle-down")
+    }).mouseleave(function () {
+        $(".nav-course-down-list").stop().slideUp();
+        $("#courseIcon").addClass("fa-angle-down").removeClass("fa-angle-up")
+    });
+
+    function logout() {
+        $.post('http://localhost:4000/api/logout').done(function () {
+            location.reload();
+        }).fail(function (err) {
+            throw err;
+        })
+    }
+</script>

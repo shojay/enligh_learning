@@ -1,0 +1,74 @@
+<% blogList.forEach(blog => { %>
+<div class="item-wrapper">
+    <div class="user-picture">
+        <a href="javascript:">
+            <img src="<%= blog.user.picture%>" style="border-radius: 50%"/>
+        </a>
+    </div>
+    <div class="content clear-fix">
+        <div class="card-username">
+            <a href="/blog/profile/<%= blog.user.name%>">
+                <%= blog.user.name%>
+            </a>
+        </div>
+        <div class="card-time">
+            <span><%= blog.createdAtFormat%></span>
+        </div>
+        <div class="card-content">
+            <div><%- blog.contentFormat%></div>
+        </div>
+        <% if (blog.image) { %>
+        <a href="<%= blog.image%>" target="_blank" style="display: block;width: 100px;">
+            <img class="blog-img" src="<%= blog.image%>"/>
+        </a>
+        <% } %>
+    </div>
+    <div class="info">
+        &nbsp;
+        <% if (locals.canReply) { %>
+        <%# 可以回复 %>
+        <a href="#" class="blog-list-reply"
+           data-content="<%= blog.content%>"
+           data-userName="<%= blog.user.name%>"
+           data-nickName="<%= blog.user.name%>"
+        >
+            <i class="fa fa-mail-reply"></i> 回复
+        </a>
+        <% } %>
+    </div>
+</div>
+<% }) %>
+
+<script>
+    $(function () {
+        // 设置焦点
+        function setCursor(el, st, end) {
+            if (el.setSelectionRange) {
+                el.focus()
+                el.setSelectionRange(st, end)
+            } else if (el.createTextRange) {
+                let range = el.createTextRange()
+                range.collapse(true)
+                range.moveEnd('character',end)
+                range.moveStart('character',st)
+                range.select()
+            }
+        }
+
+        // 回复
+        let $textContent = $('#text-content')
+        $('.blog-list-reply').click(function (e) {
+            e.preventDefault()
+            let $target = $(e.target)
+
+            // 获取内容和用户
+            let content = $target.attr('data-content')
+            let userName = $target.attr('data-userName')
+            let nickName = $target.attr('data-nickName')
+
+            // 设置内容并获取焦点
+            $textContent.val(' // @' + nickName + ' - ' + userName + ' : ' + content)
+            setCursor($textContent[0], 0, 0)
+        })
+    })
+</script>

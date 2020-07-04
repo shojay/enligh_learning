@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <% include ./common/head.html %>
+    <link rel="stylesheet" href="/stylesheets/article.css">
+    <style>
+        .enterDetail, .enterDetail a, .enterPage, .enterPage a{
+            transition: all .5s;
+        }
+        .enterDetail:hover,.enterPage:hover{
+            background-color: rgb(154, 154, 154);
+            border: 1px solid #fff;
+        }
+        .enterDetail:hover a, .enterPage:hover a{
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <% include ./common/nav.html %>
+        <div id="wrapper">
+
+            <!-- Main -->
+            <div id="main">
+
+                <div id="content">
+                    <h3 class="d-flex justify-content-center align-items-center">
+                        <span class="mr-2">听力专区</span>
+                        <div class="filter d-flex align-items-center justify-content-center">
+                            <input class="form-control colfff mr5" style="width:200px;" v-model="searchKey" @keyup.enter="search"
+                                   placeholder="输入标题"/>
+                            <i class="fa fa-search ml-2" @click="search" style="font-size:24px;cursor: pointer;"
+                               aria-hidden="true"></i>
+                        </div>
+                    </h3>
+                    <!-- Post -->
+                    <article class="post" v-for="item in listeningList" :key="item.id" >
+                        <header>
+                            <div class="title">
+                                <h2 @click="toTeachDetail(item.id)">{{ item.name }}</h2>
+                            </div>
+                            <div class="meta">
+                                <time class="published">{{ item.createdAt.slice(0,10) }}</time>
+                                <a href="javascript:;" class="author"><span class="name">{{ item.user.name }}</span></a>
+                            </div>
+                        </header>
+<!--                        <a href="javascript:;" class="image featured">-->
+<!--                            <video class="video" v-if="n.fileType == 'video'" :src="n.imgPath"-->
+<!--                                   controls></video>-->
+<!--                            <img v-else-if="n.fileType == 'img'" :src="n.imgPath" />-->
+<!--                            <img v-else width="100%" height="378px" :src="n.imgPath" alt="else"/>-->
+<!--                        </a>-->
+                        <footer>
+                            <ul class="actions">
+                                <li class="enter-button enterDetail" style="text-align: center;padding: 10px 0;">
+                                    <a href="javascript:" :href="'/listening/'+ item.id" style="display: block;"
+                                                                        style="border: none;">继续阅读</a>
+                                </li>
+                            </ul>
+                        </footer>
+                    </article>
+
+                    <!-- Pagination -->
+                    <ul class="actions pagination d-flex justify-content-center align-items-center row">
+                        <li class="offset-4" style="display: none"></li>
+                        <li class="text-center col-4 enterPage">
+                            <a href="javascript:" @click="changePage(-1)">上一页</a>
+                        </li>
+                        <li class="text-center col-4 enterPage">
+                            <a href="javascript:" @click="changePage(-2)">下一页</a>
+                        </li>
+                        <li class="offset-4" style="display: none;"></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Sidebar -->
+            <section id="sidebar">
+                <!-- Intro -->
+                <section id="intro">
+                    <header>
+                        <h2>听力练习</h2>
+                        <p>练习听力来提高你的英语水平吧！<a href="javascript:">NOW COME</a></p>
+                    </header>
+                </section>
+            </section>
+        </div>
+    </div>
+    <script>
+        let app = new Vue({
+            el: '#content',
+            data: {
+                pageSize: 5,
+                pageNow: 1,
+                pages: [],
+                searchKey: '',
+                listenings: [],
+                listeningList: [],
+                active: 1
+            },
+            created() {
+                this.getListeningList(this.searchKey, this.pageSize, this.pageNow)
+            },
+            mounted() {
+                // this.getSearch();
+                console.log($.cookie('userInfo'));
+            },
+            filters: {
+                formatText(el) {
+                    let text = document.createElement('div');
+                    text.innerHTML = el;
+                    return text.innerText;
+                }
+            },
+            methods: {
+                search() {
+                    this.getListeningList(this.searchKey, this.pageSize, this.pageNow)
+                },
+                getSearch() {
+                    let searchVal = window.location.search;
+                    searchVal = searchVal.slice(searchVal.lastIndexOf('=') + 1);
+                    this.getListeningList(this.searchKey, this.pageSize, this.pageNow)
+                },
+                changePage(i) {
+                    if (i === this.pageNow) return false; // 如果点击当前分页，那么什么都不做
+                    // 如果分页位于第一页且点击上一页，那么什么都不做
+                    if (this.pageNow === 1 && i === -1) {
+                        layer.msg('没有上一页了！');
+                        return false;
+                    }
+                    // 如果当前分页为最后一页且点击下一页，那么什么都不做
+                    if (this.pageNow === this.pages[this.pages.length - 1] && i === -2) {
+                        layer.msg('没有下一页了！');
+                        return false;
+                    }
+                    // 不是以上情况的话
+                    this.pageNow = i === -1 ? this.pageNow - 1 : i === -2 ? this.pageNow + 1 : i;
+                    this.getListeningList(this.searchKey, this.pageSize, this.pageNow);
+                    $('html, body').prop({
+                        'scrollTop': '0px'
+                    });
+                },
+                getPages(searchKey, pageSize, pageNow) {
+                    $.get('/api/listening/getPages', { searchKey, pageSize, pageNow }).done(data => {
+                        console.log(data);
+                        if (data.code !== 0) {
+                            layer.msg(data.msg);
+                            return false;
+                        }
+                        this.pages = data.pages;
+                    }).fail(err => {
+                        throw err
+                    })
+                },
+                getListeningList(searchKey, pageSize, pageNow) {
+                    $.get('/api/getListenings', { searchKey, pageSize, pageNow }).done(data => {
+                        console.log(data);
+                        if (data.code !== 0) {
+                            layer.msg(data.msg);
+                            return false;
+                        }
+                        this.listeningList = data.listenings;
+                        console.log(this.listeningList);
+                        this.getPages(searchKey, pageSize, pageNow);
+                    }).fail(err => {
+                        throw err;
+                    })
+                },
+                toTeachDetail(id) {
+                    location.href = '/listening/' + id;
+                }
+            }
+        })
+    </script>
+</body>
+</html>
