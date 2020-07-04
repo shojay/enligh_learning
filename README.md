@@ -12,3 +12,4 @@ redis-server
 
 # 项目展示
 
+![image](https://github.com/shojay/enligh_learning/blob/master/showImg/1.png)
